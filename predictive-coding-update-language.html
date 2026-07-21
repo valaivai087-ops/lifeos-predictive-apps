@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>預測編碼更新語言 | Predictive Coding Update Language</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            background: #FFFFFF;
+            font-family: 'Microsoft JhengHei', 'Segoe UI', Tahoma, sans-serif;
+            color: #0D1B3E;
+            line-height: 1.8;
+            padding: 30px 15px;
+        }
+        
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+            border-bottom: 4px solid #C9960C;
+            padding-bottom: 25px;
+        }
+        
+        h1 {
+            font-size: 44px;
+            font-weight: bold;
+            color: #0D1B3E;
+            margin-bottom: 8px;
+        }
+        
+        .subtitle {
+            font-size: 20px;
+            color: #006B7D;
+            font-weight: 500;
+        }
+        
+        .controls {
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: center;
+        }
+        
+        input[type="text"] {
+            width: 100%;
+            max-width: 400px;
+            padding: 12px 16px;
+            font-size: 16px;
+            border: 2px solid #006B7D;
+            border-radius: 4px;
+            font-family: 'Microsoft JhengHei', sans-serif;
+            color: #0D1B3E;
+        }
+        
+        input[type="text"]:focus {
+            outline: none;
+            border-color: #C9960C;
+            box-shadow: 0 0 0 3px rgba(201, 150, 12, 0.15);
+        }
+        
+        .cards-grid {
+            display: grid;
+            gap: 25px;
+            margin-bottom: 40px;
+        }
+        
+        .card {
+            border: 2px solid #E0E0E0;
+            border-left: 6px solid #006B7D;
+            background: #FFFFFF;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border-radius: 2px;
+            overflow: hidden;
+        }
+        
+        .card:hover {
+            border-left-color: #C9960C;
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
+        }
+        
+        .card-header {
+            padding: 18px 20px;
+            background: #F5F5F5;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #E0E0E0;
+        }
+        
+        .card-num {
+            font-size: 24px;
+            font-weight: bold;
+            color: #C9960C;
+            min-width: 65px;
+        }
+        
+        .card-title {
+            flex: 1;
+            margin: 0 20px;
+            font-size: 16px;
+            font-weight: 500;
+            color: #0D1B3E;
+        }
+        
+        .toggle-icon {
+            font-size: 24px;
+            color: #006B7D;
+            transition: transform 0.3s ease;
+            min-width: 30px;
+        }
+        
+        .card.expanded .toggle-icon {
+            transform: rotate(180deg);
+        }
+        
+        .card-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+        }
+        
+        .card.expanded .card-content {
+            max-height: 3000px;
+        }
+        
+        .content-wrapper {
+            padding: 25px;
+        }
+        
+        .section {
+            margin-bottom: 30px;
+            padding-bottom: 30px;
+            border-bottom: 1px solid #E8E8E8;
+        }
+        
+        .section:last-child {
+            margin-bottom: 0;
+            border-bottom: none;
+        }
+        
+        .section-title {
+            font-size: 14px;
+            font-weight: bold;
+            color: #C9960C;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #C9960C;
+        }
+        
+        .bilingual-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+        }
+        
+        .lang-side {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .text-content {
+            font-size: 16px;
+            line-height: 1.75;
+            color: #2C2C2C;
+        }
+        
+        .tts-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 14px;
+            background: #006B7D;
+            color: #FFFFFF;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 13px;
+            font-family: 'Microsoft JhengHei', sans-serif;
+            margin-top: 12px;
+            width: fit-content;
+            transition: all 0.3s ease;
+        }
+        
+        .tts-btn:hover {
+            background: #0A7A72;
+        }
+        
+        .stats {
+            text-align: center;
+            padding: 30px;
+            background: #F5F5F5;
+            border-radius: 4px;
+            color: #006B7D;
+            font-size: 16px;
+            font-weight: 500;
+        }
+        
+        @media (max-width: 1024px) {
+            .bilingual-content {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 32px;
+            }
+            
+            .content-wrapper {
+                padding: 18px;
+            }
+            
+            .section {
+                margin-bottom: 25px;
+                padding-bottom: 25px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>預測編碼更新語言</h1>
+            <p class="subtitle">Predictive Coding Update Language</p>
+        </header>
+        
+        <div class="controls">
+            <input type="text" id="searchInput" placeholder="搜尋 / Search...">
+        </div>
+        
+        <div class="cards-grid" id="cardsGrid"></div>
+        
+        <div class="stats" id="statsText">
+            Loading... | 載入中...
+        </div>
+    </div>
+
+    <script>
+        const fullData = [
+            {n: 1, cn_old: '失敗代表我不行。', en_old: 'Failure means I am not capable.', cn_new: '失敗代表模型需要更新。', en_new: 'Failure means my model needs updating.', cn_essence: '把身份判斷，改成模型判斷。', en_essence: 'Change from identity judgment to model judgment.', cn_effect: '降低自責。增加學習意願。提升修正能力。', en_effect: 'Reduce self-blame. Increase learning motivation. Improve correction ability.', cn_meaning: '真正失敗的不是犯錯。而是拒絕更新自己的模型。', en_meaning: 'True failure is not making mistakes. It is refusing to update your model.'},
+            {n: 2, cn_old: '犯錯很丟臉。', en_old: 'Making mistakes is shameful.', cn_new: '犯錯提供新的證據。', en_new: 'Mistakes provide new evidence.', cn_essence: '把犯錯從羞辱。重新定義成資料。', en_essence: 'Redefine mistakes from shame to data.', cn_effect: '降低羞恥感。增加探索能力。提高學習速度。', en_effect: 'Reduce shame. Increase exploration. Improve learning speed.', cn_meaning: '每一次錯誤。都是模型更新的重要資料。', en_meaning: 'Every error is important data for model updating.'},
+            {n: 3, cn_old: '情緒是真相。', en_old: 'Emotions are the truth.', cn_new: '情緒是預測誤差的訊號。', en_new: 'Emotions are signals of prediction errors.', cn_essence: '情緒不是事實。而是大腦對現實的預測落差。', en_essence: 'Emotions are not facts. They are gaps between brain predictions and reality.', cn_effect: '降低情緒控制。增加自我覺察。提升情緒調節能力。', en_effect: 'Reduce emotional control. Increase self-awareness. Improve emotional regulation.', cn_meaning: '不要急著改變情緒。先理解是哪一個預測出了問題。', en_meaning: 'Don\'t rush to change emotions. First understand which prediction went wrong.'},
+            {n: 4, cn_old: '害怕表示不能做。', en_old: 'Fear means I cannot do it.', cn_new: '害怕表示模型還不熟悉。', en_new: 'Fear means the model is unfamiliar.', cn_essence: '恐懼不是能力不足。而是經驗不足。', en_essence: 'Fear is not lack of ability. It is lack of experience.', cn_effect: '增加嘗試意願。降低逃避行為。建立成長心態。', en_effect: 'Increase willingness to try. Reduce avoidance. Build growth mindset.', cn_meaning: '熟悉會降低恐懼。練習會改變預測。', en_meaning: 'Familiarity reduces fear. Practice changes predictions.'},
+            {n: 5, cn_old: '困難代表停止。', en_old: 'Difficulty means stop.', cn_new: '困難代表正在學習。', en_new: 'Difficulty means learning in progress.', cn_essence: '困難表示模型正在重建。', en_essence: 'Difficulty means the model is rebuilding.', cn_effect: '增加韌性。降低放棄率。提升持續學習能力。', en_effect: 'Increase resilience. Reduce quit rate. Improve continuous learning.', cn_meaning: '真正的成長。幾乎都發生在感到困難的地方。', en_meaning: 'True growth almost always happens where difficulty exists.'},
+            {n: 6, cn_old: '壓力代表危險。', en_old: 'Pressure means danger.', cn_new: '壓力可能代表成長。', en_new: 'Pressure may signal growth.', cn_essence: '壓力是挑戰與能力之間的落差。', en_essence: 'Pressure is the gap between challenge and ability.', cn_effect: '降低抗拒。增加適應力。提升恢復力。', en_effect: 'Reduce resistance. Increase adaptability. Improve recovery.', cn_meaning: '適當的壓力。是能力升級的催化劑。', en_meaning: 'Appropriate pressure is a catalyst for ability upgrade.'},
+            {n: 7, cn_old: '改變很危險。', en_old: 'Change is dangerous.', cn_new: '更新才能適應世界。', en_new: 'Updating is how we adapt to the world.', cn_essence: '世界一直改變。模型也必須更新。', en_essence: 'The world keeps changing. Models must update too.', cn_effect: '增加彈性。提升適應能力。降低淘汰風險。', en_effect: 'Increase flexibility. Improve adaptation. Reduce obsolescence risk.', cn_meaning: '不更新的人。最後會被世界更新。', en_meaning: 'Those who don\'t update will eventually be updated by the world.'},
+            {n: 8, cn_old: '我就是這樣的人。', en_old: 'I am just this kind of person.', cn_new: '模型可以持續更新。', en_new: 'The model can keep updating.', cn_essence: '人格不是固定。而是長期更新形成。', en_essence: 'Personality is not fixed. It forms through long-term updating.', cn_effect: '增加希望。提升可塑性。建立成長心態。', en_effect: 'Increase hope. Improve plasticity. Build growth mindset.', cn_meaning: '今天的自己。不是最後版本。', en_meaning: 'Today\'s self is not the final version.'},
+            {n: 9, cn_old: '別人害我痛苦。', en_old: 'Others cause my pain.', cn_new: '痛苦來自事件與模型的不一致。', en_new: 'Pain comes from mismatch between event and model.', cn_essence: '事件只是刺激。真正痛苦來自內在解讀。', en_essence: 'Events are just stimuli. True pain comes from internal interpretation.', cn_effect: '提升情緒自主。降低責怪。增加改變能力。', en_effect: 'Improve emotional autonomy. Reduce blame. Increase ability to change.', cn_meaning: '改變模型。比改變所有人容易。', en_meaning: 'Changing your model is easier than changing everyone.'},
+            {n: 10, cn_old: '命運決定人生。', en_old: 'Destiny determines life.', cn_new: '更新決定人生。', en_new: 'Updating determines life.', cn_essence: '人生來自每天累積的小更新。', en_essence: 'Life comes from small daily updates accumulated over time.', cn_effect: '增加行動力。提升責任感。建立長期成長。', en_effect: 'Increase agency. Improve responsibility. Build long-term growth.', cn_meaning: '每天更新一點。命運就開始改變。', en_meaning: 'Update a little each day. Destiny begins to change.'},
+            {n: 20, cn_old: '壓力越少越幸福。', en_old: 'Less pressure means more happiness.', cn_new: '適度壓力促進更新。', en_new: 'Moderate pressure promotes updating.', cn_essence: '完全沒有挑戰。模型容易停滯。', en_essence: 'No challenge means the model easily stagnates.', cn_effect: '提升學習效率。增加生命活力。促進能力成長。', en_effect: 'Improve learning efficiency. Increase vitality. Promote ability growth.', cn_meaning: '幸福不是沒有壓力。而是有能力面對壓力。', en_meaning: 'Happiness is not no pressure. It is having ability to face pressure.'},
+            {n: 50, cn_old: '輸了就是輸了。', en_old: 'Loss means loss.', cn_new: '輸了得到新資料。', en_new: 'Loss provides new data.', cn_essence: '輸贏只是一次驗證。真正留下的是資料。', en_essence: 'Win or loss is just one validation. What remains is data.', cn_effect: '提升恢復力。增加修正速度。降低失敗恐懼。', en_effect: 'Improve recovery. Increase correction speed. Reduce fear of failure.', cn_meaning: '只要願意分析。每一次失敗都是資產。', en_meaning: 'If willing to analyze, every failure is an asset.'},
+            {n: 60, cn_old: '人生追求完美。', en_old: 'Life pursues perfection.', cn_new: '人生追求持續降低預測誤差、提高解決問題能力。', en_new: 'Life pursues continuous reduction of prediction error and improvement in problem-solving.', cn_essence: '人生不是追求零錯誤。而是不斷接近真實。', en_essence: 'Life is not pursuing zero errors. It is constantly approaching reality.', cn_effect: '提升韌性。增加幸福感。建立終身成長系統。', en_effect: 'Improve resilience. Increase happiness. Build lifelong growth system.', cn_meaning: '真正成功的人生。不是永遠完美。而是每天都比昨天更理解世界、更理解自己。', en_meaning: 'A truly successful life is not always perfect. It is understanding the world and oneself better each day than yesterday.'},
+            {n: 100, cn_old: '犯錯要避免。', en_old: 'Mistakes must be avoided.', cn_new: '重複犯同樣錯才要避免。', en_new: 'Only repeating the same mistake must be avoided.', cn_essence: '第一次錯誤是學習。重複錯誤是忽略回饋。', en_essence: 'First mistake is learning. Repeated mistake is ignoring feedback.', cn_effect: '提升反思能力。增加修正品質。降低重複失敗。', en_effect: 'Improve reflection. Increase correction quality. Reduce repeated failure.', cn_meaning: '智慧不是從不犯錯。而是每一次錯誤。都讓下一次的自己更接近真實。', en_meaning: 'Wisdom is not never making mistakes. It is each mistake bringing the next self closer to reality.'},
+            {n: 120, cn_old: '看見人生。', en_old: 'See life.', cn_new: '看見持續更新的生成系統。', en_new: 'See a system that continuously updates and generates.', cn_essence: '人生不是固定劇本。而是不斷修正與生成。', en_essence: 'Life is not a fixed script. It is constant correction and generation.', cn_effect: '增加希望。提升適應力。建立終身學習。', en_effect: 'Increase hope. Improve adaptability. Build lifelong learning.', cn_meaning: '真正的人生智慧。不是一次找到答案。而是一生持續更新自己的世界模型。', en_meaning: 'True life wisdom is not finding the answer once. It is continuously updating your world model for life.'},
+            {n: 140, cn_old: '看見生命。', en_old: 'See life.', cn_new: '看見一個持續預測、修正、恢復、適應、演化的自我更新系統。', en_new: 'See a self-updating system that continuously predicts, corrects, recovers, adapts, and evolves.', cn_essence: '生命最大的能力。不是避免改變。而是不斷適應改變。', en_essence: 'Life\'s greatest ability is not avoiding change. It is constantly adapting to change.', cn_effect: '建立整體健康觀。提升終身學習能力。增加面對未知的信心。', en_effect: 'Build holistic health view. Improve lifelong learning. Increase confidence facing unknown.', cn_meaning: '生命真正的奇蹟。不是永遠正確。而是在每一次誤差、每一次挑戰、每一次修正之後，持續演化成更成熟、更有智慧的自己。', en_meaning: 'Life\'s true miracle is not being always right. It is evolving into a more mature and wise self after each error, challenge, and correction.'},
+            {n: 160, cn_old: '看見未來。', en_old: 'See the future.', cn_new: '看見持續生成的可能性。', en_new: 'See continuously generating possibilities.', cn_essence: '未來不是等待發生。而是每天生成。', en_essence: 'Future is not waiting to happen. It is generated every day.', cn_effect: '增加希望。提升規劃能力。建立長期思維。', en_effect: 'Increase hope. Improve planning ability. Build long-term thinking.', cn_meaning: '最好的預測未來方式。就是今天開始創造未來。', en_meaning: 'The best way to predict the future is to create it starting today.'},
+            {n: 180, cn_old: '看見人類。', en_old: 'See humanity.', cn_new: '看見能持續預測、修正、學習、合作、創造的智慧生成系統。', en_new: 'See a wisdom-generating system that continuously predicts, corrects, learns, cooperates, and creates.', cn_essence: '人類最大的能力。不是記憶。不是力量。而是持續更新世界模型。', en_essence: 'Humanity\'s greatest ability is not memory or strength. It is continuously updating world models.', cn_effect: '提升終身學習能力。增加創新能力。建立高維思考。', en_effect: 'Improve lifelong learning. Increase innovation ability. Build high-dimensional thinking.', cn_meaning: '人類文明之所以能持續進步。不是因為從未犯錯。而是因為願意不斷修正、持續更新，讓每一代都比上一代更接近真實。', en_meaning: 'Human civilization progresses not because we never make mistakes. It is because we are willing to continuously correct and update, letting each generation approach reality better than the last.'},
+            {n: 200, cn_old: '看見生命。', en_old: 'See life.', cn_new: '看見一個持續預測、持續修正、持續恢復、持續適應、持續演化的自我更新系統。', en_new: 'See a self-updating system that continuously predicts, corrects, recovers, adapts, and evolves.', cn_essence: '生命最大的能力。不是避免改變。而是不斷適應改變。', en_essence: 'Life\'s greatest ability is not avoiding change. It is continuously adapting to change.', cn_effect: '建立整體健康觀。提升終身學習能力。增加面對未知的信心。', en_effect: 'Build holistic health view. Improve lifelong learning ability. Increase confidence in facing unknown.', cn_meaning: '生命真正的奇蹟。不是永遠正確。而是在每一次誤差、每一次挑戰、每一次修正之後，持續演化成更成熟、更有智慧的自己。', en_meaning: 'Life\'s true miracle is not being always correct. It is evolving into a wiser self after each error, challenge, and correction.'},
+            {n: 220, cn_old: '看見關係。', en_old: 'See relationships.', cn_new: '看見彼此共同更新的生成系統。', en_new: 'See a generation system of joint mutual updating.', cn_essence: '所有長久關係。都需要持續修正、持續理解、持續同步。', en_essence: 'All lasting relationships require continuous correction, understanding, and synchronization.', cn_effect: '提升親密感。增加信任。建立穩定合作。', en_effect: 'Improve intimacy. Increase trust. Build stable cooperation.', cn_meaning: '真正好的關係。不是找到完全適合的人。而是兩個願意一起更新世界模型的人。', en_meaning: 'A truly good relationship is not finding the perfectly matched person. It is two people willing to update their world models together.'},
+            {n: 240, cn_old: '看見理解。', en_old: 'See understanding.', cn_new: '看見世界模型持續生成。', en_new: 'See world models continuously generating.', cn_essence: '理解不是記住答案。而是能持續生成新的答案。', en_essence: 'Understanding is not remembering answers. It is continuously generating new answers.', cn_effect: '提升終身學習。增加創造能力。建立高維思考。', en_effect: 'Improve lifelong learning. Increase creative ability. Build high-dimensional thinking.', cn_meaning: '當一個人真正理解世界。他不再害怕未知。因為他知道，任何未知都能透過觀察、預測、修正與學習，逐漸轉化成新的理解。', en_meaning: 'When someone truly understands the world, they no longer fear the unknown. Because they know any unknown can gradually transform into new understanding through observation, prediction, correction, and learning.'},
+            {n: 260, cn_old: '看見人生。', en_old: 'See life.', cn_new: '看見一個持續觀察、持續預測、持續驗證、持續修正、持續生成智慧的系統。', en_new: 'See a system that continuously observes, predicts, validates, corrects, and generates wisdom.', cn_essence: '人生不是等待答案。而是不斷生成更好的答案。', en_essence: 'Life is not waiting for answers. It is continuously generating better answers.', cn_effect: '提升終身學習。建立系統思維。增加面對未知的能力。', en_effect: 'Improve lifelong learning. Build systems thinking. Increase ability to face unknown.', cn_meaning: '一個人的高度。不取決於知道多少答案。而取決於能否在每一次新經驗中，更新自己的世界模型，讓自己越來越接近真實、越來越接近智慧。', en_meaning: 'A person\'s height does not depend on how many answers they know. It depends on whether they can update their world model in each new experience, getting closer to reality and wisdom.'},
+        ];
+
+        let allCards = [...fullData];
+        let currentSearch = '';
+
+        function renderCards() {
+            const grid = document.getElementById('cardsGrid');
+            grid.innerHTML = '';
+            
+            let filtered = allCards;
+            if (currentSearch) {
+                filtered = allCards.filter(item => 
+                    item.cn_old.includes(currentSearch) || 
+                    item.en_old.includes(currentSearch) ||
+                    item.cn_new.includes(currentSearch) ||
+                    item.en_new.includes(currentSearch)
+                );
+            }
+
+            filtered.forEach(item => {
+                const card = createCard(item);
+                grid.appendChild(card);
+            });
+        }
+
+        function createCard(item) {
+            const card = document.createElement('div');
+            card.className = 'card';
+            
+            card.innerHTML = `
+                <div class="card-header">
+                    <div class="card-num">#${String(item.n).padStart(3, '0')}</div>
+                    <div class="card-title">${item.cn_old}</div>
+                    <div class="toggle-icon">▼</div>
+                </div>
+                <div class="card-content">
+                    <div class="content-wrapper">
+                        <!-- Old -->
+                        <div class="section">
+                            <div class="section-title">舊預測 | Old</div>
+                            <div class="bilingual-content">
+                                <div class="lang-side">
+                                    <div class="text-content">${item.cn_old}</div>
+                                </div>
+                                <div class="lang-side">
+                                    <div class="text-content">${item.en_old}</div>
+                                    <button class="tts-btn" onclick="speakText('${item.en_old.replace(/'/g, "\\'")}')">🔊 Listen</button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- New -->
+                        <div class="section">
+                            <div class="section-title">新預測 | New</div>
+                            <div class="bilingual-content">
+                                <div class="lang-side">
+                                    <div class="text-content">${item.cn_new}</div>
+                                </div>
+                                <div class="lang-side">
+                                    <div class="text-content">${item.en_new}</div>
+                                    <button class="tts-btn" onclick="speakText('${item.en_new.replace(/'/g, "\\'")}')">🔊 Listen</button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Essence -->
+                        <div class="section">
+                            <div class="section-title">本質 | Essence</div>
+                            <div class="bilingual-content">
+                                <div class="lang-side">
+                                    <div class="text-content">${item.cn_essence}</div>
+                                </div>
+                                <div class="lang-side">
+                                    <div class="text-content">${item.en_essence}</div>
+                                    <button class="tts-btn" onclick="speakText('${item.en_essence.replace(/'/g, "\\'")}')">🔊 Listen</button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Effects -->
+                        <div class="section">
+                            <div class="section-title">功效 | Effects</div>
+                            <div class="bilingual-content">
+                                <div class="lang-side">
+                                    <div class="text-content">${item.cn_effect}</div>
+                                </div>
+                                <div class="lang-side">
+                                    <div class="text-content">${item.en_effect}</div>
+                                    <button class="tts-btn" onclick="speakText('${item.en_effect.replace(/'/g, "\\'")}')">🔊 Listen</button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Meaning -->
+                        <div class="section">
+                            <div class="section-title">意義 | Meaning</div>
+                            <div class="bilingual-content">
+                                <div class="lang-side">
+                                    <div class="text-content">${item.cn_meaning}</div>
+                                </div>
+                                <div class="lang-side">
+                                    <div class="text-content">${item.en_meaning}</div>
+                                    <button class="tts-btn" onclick="speakText('${item.en_meaning.replace(/'/g, "\\'")}')">🔊 Listen</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            card.querySelector('.card-header').addEventListener('click', () => {
+                card.classList.toggle('expanded');
+            });
+            
+            return card;
+        }
+
+        function speakText(text) {
+            if ('speechSynthesis' in window) {
+                speechSynthesis.cancel();
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.lang = 'en-US';
+                utterance.rate = 0.85;
+                utterance.pitch = 1;
+                speechSynthesis.speak(utterance);
+            }
+        }
+
+        function updateStats() {
+            let total = allCards.length;
+            let showing = currentSearch ? 
+                allCards.filter(item => 
+                    item.cn_old.includes(currentSearch) || 
+                    item.en_old.includes(currentSearch) ||
+                    item.cn_new.includes(currentSearch) ||
+                    item.en_new.includes(currentSearch)
+                ).length : total;
+            
+            document.getElementById('statsText').textContent = 
+                `顯示 ${showing} / 總計 ${total} 條目  |  Showing ${showing} / Total ${total} entries`;
+        }
+
+        document.getElementById('searchInput').addEventListener('input', (e) => {
+            currentSearch = e.target.value.trim();
+            renderCards();
+            updateStats();
+        });
+
+        // Initialize
+        renderCards();
+        updateStats();
+    </script>
+</body>
+</html>
