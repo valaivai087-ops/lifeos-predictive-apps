@@ -1,0 +1,1343 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Life OS 300 生成規律 | Generation Laws</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --navy: #1A2B5F;
+            --gold: #C9960C;
+            --teal: #0A7A72;
+            --light-bg: #F8F9FA;
+            --text-dark: #1A2B5F;
+        }
+
+        body {
+            font-family: "Microsoft JhengHei", "微软正黑体", sans-serif;
+            background-color: white;
+            color: var(--text-dark);
+            line-height: 1.6;
+        }
+
+        .header {
+            background: linear-gradient(135deg, var(--navy) 0%, var(--teal) 100%);
+            color: white;
+            padding: 30px 20px;
+            text-align: center;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+
+        .header h1 {
+            font-size: 32px;
+            margin-bottom: 8px;
+            font-weight: 700;
+        }
+
+        .header p {
+            font-size: 16px;
+            opacity: 0.9;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 30px 20px;
+        }
+
+        .controls {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .search-box {
+            flex: 1;
+            min-width: 250px;
+            padding: 12px 16px;
+            border: 2px solid var(--gold);
+            border-radius: 6px;
+            font-size: 16px;
+            font-family: "Microsoft JhengHei", sans-serif;
+        }
+
+        .search-box:focus {
+            outline: none;
+            border-color: var(--teal);
+            box-shadow: 0 0 8px rgba(10, 122, 114, 0.3);
+        }
+
+        .filter-btn {
+            padding: 12px 20px;
+            border: none;
+            background-color: var(--gold);
+            color: white;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-family: "Microsoft JhengHei", sans-serif;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .filter-btn:hover {
+            background-color: var(--teal);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(10, 122, 114, 0.3);
+        }
+
+        .filter-btn.active {
+            background-color: var(--teal);
+        }
+
+        .stats {
+            font-size: 14px;
+            color: #666;
+            padding: 10px 0;
+        }
+
+        .laws-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 20px;
+        }
+
+        .law-card {
+            background: white;
+            border: 2px solid #E0E0E0;
+            border-radius: 8px;
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            overflow: hidden;
+        }
+
+        .law-card:hover {
+            border-color: var(--gold);
+            box-shadow: 0 8px 20px rgba(201, 150, 12, 0.15);
+            transform: translateY(-4px);
+        }
+
+        .law-number {
+            display: inline-block;
+            background-color: var(--navy);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 700;
+            margin-bottom: 12px;
+        }
+
+        .law-rule {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--teal);
+            margin-bottom: 16px;
+            line-height: 1.5;
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+        }
+
+        .rule-arrow {
+            color: var(--gold);
+            font-weight: bold;
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+
+        .law-card.collapsed .law-details {
+            display: none;
+        }
+
+        .law-card.expanded {
+            border-color: var(--teal);
+            box-shadow: 0 8px 24px rgba(10, 122, 114, 0.2);
+        }
+
+        .law-details {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            padding-top: 16px;
+            border-top: 2px solid var(--light-bg);
+        }
+
+        .detail-block {
+            padding: 12px;
+            background-color: var(--light-bg);
+            border-radius: 6px;
+        }
+
+        .detail-label {
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--gold);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 6px;
+            display: block;
+        }
+
+        .detail-zh {
+            font-size: 16px;
+            color: var(--text-dark);
+            font-weight: 600;
+            margin-bottom: 10px;
+            line-height: 1.5;
+        }
+
+        .detail-en {
+            font-size: 13px;
+            color: #666;
+            line-height: 1.5;
+            font-style: italic;
+        }
+
+        .tts-btn {
+            background-color: var(--teal);
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            font-family: "Microsoft JhengHei", sans-serif;
+            font-weight: 600;
+            margin-top: 8px;
+            transition: all 0.2s ease;
+        }
+
+        .tts-btn:hover {
+            background-color: var(--navy);
+            transform: scale(1.05);
+        }
+
+        .tts-btn.playing {
+            background-color: var(--gold);
+        }
+
+        .expand-hint {
+            font-size: 12px;
+            color: #999;
+            text-align: center;
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid #E0E0E0;
+        }
+
+        .three-column {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 16px;
+            padding-top: 16px;
+            border-top: 2px solid var(--light-bg);
+        }
+
+        @media (max-width: 1024px) {
+            .three-column {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .law-details {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 640px) {
+            .header h1 {
+                font-size: 24px;
+            }
+
+            .laws-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .three-column {
+                grid-template-columns: 1fr;
+            }
+
+            .detail-zh, .detail-label, .detail-en {
+                font-size: 14px;
+            }
+
+            .law-rule {
+                font-size: 16px;
+            }
+        }
+
+        .no-results {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 60px 20px;
+            color: #999;
+        }
+
+        .no-results-icon {
+            font-size: 48px;
+            margin-bottom: 20px;
+        }
+
+        .section-title {
+            grid-column: 1 / -1;
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--navy);
+            padding: 20px 10px;
+            border-bottom: 3px solid var(--gold);
+            margin-top: 30px;
+        }
+
+        .mode-toggle {
+            display: flex;
+            gap: 8px;
+        }
+
+        .mode-btn {
+            padding: 10px 16px;
+            border: 2px solid var(--gold);
+            background-color: white;
+            color: var(--gold);
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 13px;
+            font-family: "Microsoft JhengHei", sans-serif;
+            font-weight: 600;
+            transition: all 0.2s ease;
+        }
+
+        .mode-btn.active {
+            background-color: var(--gold);
+            color: white;
+        }
+
+        .footer {
+            text-align: center;
+            padding: 30px 20px;
+            color: #999;
+            font-size: 12px;
+            border-top: 1px solid #E0E0E0;
+            margin-top: 50px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Life OS 300 生成規律</h1>
+        <p>The 300 Generation Laws of Life Operating System | 生命作業系統的普遍法則</p>
+    </div>
+
+    <div class="container">
+        <div class="controls">
+            <input 
+                type="text" 
+                class="search-box" 
+                id="searchInput" 
+                placeholder="搜尋編號、規律、本質... Search by number, rule, essence..."
+            >
+            <div class="mode-toggle">
+                <button class="mode-btn active" onclick="setViewMode('grid')">卡片</button>
+                <button class="mode-btn" onclick="setViewMode('list')">列表</button>
+            </div>
+            <button class="filter-btn" onclick="expandAll()">展開全部</button>
+            <button class="filter-btn" onclick="collapseAll()">收合全部</button>
+        </div>
+
+        <div class="stats" id="stats">顯示 300 條規律</div>
+
+        <div class="laws-grid" id="lawsGrid"></div>
+    </div>
+
+    <div class="footer">
+        <p>Life OS 300 生成規律 APP | Bilingual Interactive Learning System</p>
+        <p>雙語交互式學習系統 | 按卡片查看完整內容 | Click cards to expand</p>
+    </div>
+
+    <script>
+        // 完整的300條規律數據
+        const lawsData = [
+            {id:1, rule:"先預測 → 再感知", what:"大腦不是被動接收世界，而是先建立預測，再用感官修正。", why:"說明知覺本質是主動生成，而非直接複製。", effect:"提高覺察能力，避免把自己的預測當成現實。"},
+            {id:2, rule:"先相信 → 再看見", what:"信念決定注意力的方向。", why:"人會優先看見符合信念的資訊。", effect:"幫助修正限制信念，增加看見新機會的能力。"},
+            {id:3, rule:"先有立場 → 再找理由", what:"理性常是為既有立場辯護。", why:"解釋確認偏誤（Confirmation Bias）的形成。", effect:"增加客觀思考能力，降低自我欺騙。"},
+            {id:4, rule:"先有情緒 → 再用理性解釋", what:"情緒常先於意識推理。", why:"理性很多時候是在合理化情緒。", effect:"提高情緒覺察與自我調節能力。"},
+            {id:5, rule:"先有需求 → 再有情緒", what:"情緒反映需求是否被滿足。", why:"情緒是需求狀態的回饋訊號。", effect:"提高需求辨識與溝通能力。"},
+            {id:6, rule:"先有價值排序 → 再做選擇", what:"選擇來自內在權重。", why:"每個決策都反映價值排序。", effect:"優化決策品質。"},
+            {id:7, rule:"先有世界模型 → 再解讀世界", what:"世界模型決定如何理解事件。", why:"同一事件，不同模型有不同解釋。", effect:"增加模型更新能力。"},
+            {id:8, rule:"先有注意力 → 再有記憶", what:"注意力決定資訊是否進入記憶。", why:"沒注意，就沒有真正學習。", effect:"提高學習效率。"},
+            {id:9, rule:"先有問題 → 再找答案", what:"問題定義決定答案品質。", why:"好問題比好答案更重要。", effect:"提高思考深度。"},
+            {id:10, rule:"先有框架 → 再整理資訊", what:"沒有結構，資訊只是雜訊。", why:"框架是知識的骨架。", effect:"建立系統化思考。"},
+            {id:11, rule:"先有假設 → 再驗證", what:"所有知識都從假設開始。", why:"科學就是持續修正假設。", effect:"建立科學思維。"},
+            {id:12, rule:"先有分類 → 再理解", what:"分類降低資訊熵。", why:"分類是理解的第一步。", effect:"提高知識整理能力。"},
+            {id:13, rule:"先有模式 → 再辨識事件", what:"大腦擅長辨識模式。", why:"模式比單一事件更重要。", effect:"提高預測能力。"},
+            {id:14, rule:"先有因果模型 → 再判斷結果", what:"判斷需要因果結構。", why:"結果只是因果的輸出。", effect:"增加問題分析能力。"},
+            {id:15, rule:"先有限制 → 再有策略", what:"策略是限制下的最佳解。", why:"沒有限制就沒有策略。", effect:"提高規劃能力。"},
+            {id:16, rule:"先有風險 → 再有管理", what:"管理本質是降低風險。", why:"所有決策都有風險。", effect:"增加風險管理能力。"},
+            {id:17, rule:"先有能力 → 再有成果", what:"成果是能力的輸出。", why:"想要結果，先建立能力。", effect:"避免追逐短期結果。"},
+            {id:18, rule:"先有行動 → 再有回饋", what:"回饋來自行動。", why:"不行動就沒有新資訊。", effect:"建立迭代能力。"},
+            {id:19, rule:"先有回饋 → 再有更新", what:"更新依賴回饋。", why:"回饋是學習來源。", effect:"持續改善能力。"},
+            {id:20, rule:"先有更新 → 再有成長", what:"成長不是累積，而是更新。", why:"舊模型不更新就停止成長。", effect:"建立終身學習能力。"},
+            {id:21, rule:"先有習慣 → 再有人格", what:"人格是穩定習慣集合。", why:"重複形成身份。", effect:"建立好人格。"},
+            {id:22, rule:"先有人格 → 再有命運", what:"命運是人格長期輸出。", why:"人格影響所有選擇。", effect:"改變人生方向。"},
+            {id:23, rule:"先有身份 → 再有行為", what:"身份決定行為一致性。", why:"人會活成自己相信的人。", effect:"建立長期自律。"},
+            {id:24, rule:"先有語言 → 再有思考", what:"語言塑造思維。", why:"能命名才能理解。", effect:"提升思考品質。"},
+            {id:25, rule:"先有概念 → 再有理解", what:"概念是理解單位。", why:"沒概念就難整合知識。", effect:"增加抽象能力。"},
+            {id:26, rule:"先有理解 → 再有記憶", what:"理解讓記憶穩固。", why:"理解比死背有效。", effect:"提高長期記憶。"},
+            {id:27, rule:"先有觀察 → 再有分析", what:"分析建立於觀察。", why:"沒有事實就沒有分析。", effect:"降低偏見。"},
+            {id:28, rule:"先有證據 → 再有結論", what:"結論必須建立在證據。", why:"避免情緒推論。", effect:"增加客觀判斷。"},
+            {id:29, rule:"先有模型 → 再有預測", what:"預測依賴模型。", why:"模型越好，預測越準。", effect:"提高決策品質。"},
+            {id:30, rule:"先有預測誤差 → 再有更新", what:"誤差是更新來源。", why:"沒有誤差就沒有學習。", effect:"增加適應能力。"},
+            {id:31, rule:"先有差異 → 再有注意", what:"差異比一致更容易吸引大腦。", why:"注意力優先分配給異常訊號。", effect:"提高關鍵資訊辨識能力。"},
+            {id:32, rule:"先有注意 → 再有學習", what:"學習始於注意力投入。", why:"沒有注意就沒有資訊更新。", effect:"提高學習效率。"},
+            {id:33, rule:"先有比較 → 再有判斷", what:"判斷來自比較，而非孤立資訊。", why:"大腦透過差異建立意義。", effect:"提高辨別能力。"},
+            {id:34, rule:"先有不確定 → 再有探索", what:"未知驅動探索行為。", why:"好奇心源於不確定性。", effect:"提高探索與創新能力。"},
+            {id:35, rule:"先有探索 → 再有發現", what:"發現來自行動探索。", why:"不探索就沒有新證據。", effect:"擴展知識邊界。"},
+            {id:36, rule:"先有錯誤 → 再有修正", what:"錯誤暴露模型缺口。", why:"錯誤是最佳教師。", effect:"增加更新速度。"},
+            {id:37, rule:"先有修正 → 再有進步", what:"進步源自持續修正。", why:"每次修正都降低誤差。", effect:"持續優化能力。"},
+            {id:38, rule:"先有壓力 → 再有適應", what:"壓力迫使系統調整。", why:"適度壓力促進成長。", effect:"提高適應能力。"},
+            {id:39, rule:"先有挑戰 → 再有突破", what:"突破發生在能力邊界。", why:"沒有挑戰就沒有突破。", effect:"提高能力上限。"},
+            {id:40, rule:"先有限制 → 再有創意", what:"創意常在限制中誕生。", why:"限制迫使尋找新方法。", effect:"增加創新能力。"},
+            {id:41, rule:"先有合作 → 再有成果", what:"大型成果來自合作系統。", why:"個人能力有限，合作放大價值。", effect:"提高團隊效能。"},
+            {id:42, rule:"先有信任 → 再有合作", what:"信任降低合作成本。", why:"沒有信任，合作效率下降。", effect:"建立長期關係。"},
+            {id:43, rule:"先有溝通 → 再有共識", what:"共識建立於有效表達。", why:"理解先於合作。", effect:"降低衝突。"},
+            {id:44, rule:"先有共識 → 再有執行", what:"執行依賴共同目標。", why:"沒有共識容易方向混亂。", effect:"提高執行效率。"},
+            {id:45, rule:"先有紀律 → 再有自由", what:"自律創造長期自由。", why:"短期約束換來長期選擇。", effect:"提高自主能力。"},
+            {id:46, rule:"先有延遲滿足 → 再有複利", what:"長期收益來自等待。", why:"即時享樂常犧牲未來。", effect:"提高投資思維。"},
+            {id:47, rule:"先有累積 → 再有複利", what:"複利需要時間累積。", why:"小改善持續放大。", effect:"建立長期優勢。"},
+            {id:48, rule:"先有聚焦 → 再有效率", what:"聚焦降低認知耗損。", why:"同時做太多降低品質。", effect:"提高產出效率。"},
+            {id:49, rule:"先有排序 → 再有優先", what:"優先順序決定資源配置。", why:"時間有限，必須選擇。", effect:"提高資源利用率。"},
+            {id:50, rule:"先有資源配置 → 再有成果", what:"成果取決於資源運用。", why:"好配置勝過更多資源。", effect:"提高ROI。"},
+            {id:51, rule:"先有健康 → 再有表現", what:"身體是所有能力基礎。", why:"能量不足限制發揮。", effect:"提高持續輸出能力。"},
+            {id:52, rule:"先有睡眠 → 再有修復", what:"修復主要發生於睡眠。", why:"睡眠不足影響認知。", effect:"提高恢復能力。"},
+            {id:53, rule:"先有恢復 → 再有成長", what:"成長需要修復週期。", why:"長期超載反而退步。", effect:"提高韌性。"},
+            {id:54, rule:"先有能量管理 → 再有時間管理", what:"能量比時間更重要。", why:"疲勞時效率下降。", effect:"提高工作品質。"},
+            {id:55, rule:"先有系統 → 再有規模", what:"系統才能持續複製。", why:"靠個人難以擴張。", effect:"放大影響力。"},
+            {id:56, rule:"先有流程 → 再有穩定", what:"流程降低變異。", why:"穩定來自標準化。", effect:"提高可靠性。"},
+            {id:57, rule:"先有標準 → 再有品質", what:"品質建立於標準。", why:"沒標準難改善。", effect:"提高一致性。"},
+            {id:58, rule:"先有持續改善 → 再有卓越", what:"卓越是累積的結果。", why:"每天進步一點點。", effect:"建立競爭優勢。"},
+            {id:59, rule:"先有智慧 → 再有自由", what:"智慧增加選擇能力。", why:"理解越深，自由越大。", effect:"提高人生主導權。"},
+            {id:60, rule:"先有持續更新 → 再有持續演化", what:"演化本質是不斷更新。", why:"停止更新就是退化。", effect:"建立終身演化能力。"},
+            {id:61, rule:"先有觀察 → 再有發現", what:"發現始於真實觀察。", why:"看見才能理解。", effect:"提高洞察能力。"},
+            {id:62, rule:"先有理解 → 再有改變", what:"理解比努力重要。", why:"不理解容易重複犯錯。", effect:"提高改善效率。"},
+            {id:63, rule:"先有本質 → 再有方法", what:"方法只是本質的應用。", why:"本質不懂，方法易失效。", effect:"提高遷移能力。"},
+            {id:64, rule:"先有機制 → 再有現象", what:"現象來自底層機制。", why:"找機制比看表象重要。", effect:"提高分析能力。"},
+            {id:65, rule:"先有結構 → 再有功能", what:"功能建立於結構。", why:"結構改變，功能改變。", effect:"提高系統思維。"},
+            {id:66, rule:"先有節點 → 再有槓桿", what:"關鍵節點影響全局。", why:"找對節點比努力重要。", effect:"提高改善效率。"},
+            {id:67, rule:"先有因 → 再有果", what:"結果只是原因累積。", why:"改因才能改果。", effect:"提高因果推理能力。"},
+            {id:68, rule:"先有輸入 → 再有輸出", what:"輸出品質取決於輸入。", why:"垃圾進，垃圾出。", effect:"提高學習品質。"},
+            {id:69, rule:"先有內化 → 再有應用", what:"知識需轉成能力。", why:"知道不等於做到。", effect:"提高實踐能力。"},
+            {id:70, rule:"先有練習 → 再有熟練", what:"熟練來自大量重複。", why:"重複塑造神經迴路。", effect:"提高技能穩定度。"},
+            {id:71, rule:"先有反思 → 再有成長", what:"成長需要反思。", why:"經驗不反思只是重複。", effect:"提高學習速度。"},
+            {id:72, rule:"先有紀錄 → 再有改善", what:"紀錄讓回饋可見。", why:"沒紀錄難以優化。", effect:"提高持續改善能力。"},
+            {id:73, rule:"先有衡量 → 再有管理", what:"能衡量才能管理。", why:"數據降低主觀偏差。", effect:"提高控制能力。"},
+            {id:74, rule:"先有目標 → 再有方向", what:"方向決定效率。", why:"沒目標容易迷失。", effect:"提高聚焦能力。"},
+            {id:75, rule:"先有方向 → 再有速度", what:"快速走錯方向更危險。", why:"正確比快速重要。", effect:"降低浪費。"},
+            {id:76, rule:"先有導航 → 再有到達", what:"路徑決定結果。", why:"沒導航容易繞路。", effect:"提高達成率。"},
+            {id:77, rule:"先有策略 → 再有戰術", what:"戰術服從策略。", why:"策略錯誤，努力白費。", effect:"提高成功率。"},
+            {id:78, rule:"先有原則 → 再有例外", what:"原則提供穩定判準。", why:"沒原則容易混亂。", effect:"提高一致性。"},
+            {id:79, rule:"先有規律 → 再有預測", what:"預測依賴規律。", why:"找規律才能預測。", effect:"提高判斷能力。"},
+            {id:80, rule:"先有模式 → 再有智慧", what:"智慧來自模式辨識。", why:"看見共同規律。", effect:"提高遷移能力。"},
+            {id:81, rule:"先有不懂 → 再有提問", what:"提問來自承認未知。", why:"不懂才會學習。", effect:"提高探索能力。"},
+            {id:82, rule:"先有提問 → 再有突破", what:"問題決定思考深度。", why:"好問題產生好答案。", effect:"提高創新能力。"},
+            {id:83, rule:"先有驗證 → 再有相信", what:"信任需要證據。", why:"驗證降低錯誤。", effect:"提高判斷品質。"},
+            {id:84, rule:"先有實驗 → 再有知識", what:"知識來自驗證。", why:"理論需要測試。", effect:"建立科學思維。"},
+            {id:85, rule:"先有失敗 → 再有證據", what:"失敗提供重要資訊。", why:"失敗暴露模型不足。", effect:"提高更新能力。"},
+            {id:86, rule:"先有修正 → 再有成功", what:"成功來自多次修正。", why:"一次成功只是偶然。", effect:"提高成功率。"},
+            {id:87, rule:"先有耐心 → 再有成果", what:"成果需要時間累積。", why:"急躁容易放棄。", effect:"建立長期思維。"},
+            {id:88, rule:"先有堅持 → 再有複利", what:"複利需要持續。", why:"中斷就停止累積。", effect:"提高長期競爭力。"},
+            {id:89, rule:"先有一致 → 再有信任", what:"穩定建立可信度。", why:"一致降低不確定。", effect:"建立個人品牌。"},
+            {id:90, rule:"先有誠實 → 再有真相", what:"誠實才能看見現實。", why:"自欺阻礙更新。", effect:"提高更新速度。"},
+            {id:91, rule:"先有接受 → 再有改善", what:"接受現實才能改變。", why:"否認停止更新。", effect:"提高適應能力。"},
+            {id:92, rule:"先有放下 → 再有成長", what:"放下舊模型才能更新。", why:"執著限制演化。", effect:"提高認知彈性。"},
+            {id:93, rule:"先有彈性 → 再有韌性", what:"韌性包含調整能力。", why:"剛性容易折斷。", effect:"提高抗壓能力。"},
+            {id:94, rule:"先有適應 → 再有生存", what:"演化重視適應。", why:"最適者不一定最強。", effect:"提高環境適應力。"},
+            {id:95, rule:"先有演化 → 再有競爭力", what:"持續更新才能領先。", why:"停滯就會落後。", effect:"建立長期優勢。"},
+            {id:96, rule:"先有分享 → 再有影響", what:"知識分享放大價值。", why:"教學促進內化。", effect:"提高影響力。"},
+            {id:97, rule:"先有服務 → 再有價值", what:"價值來自解決問題。", why:"幫助他人創造交換。", effect:"提高社會價值。"},
+            {id:98, rule:"先有價值 → 再有收入", what:"收入反映價值交換。", why:"價值創造先於報酬。", effect:"建立健康財務觀。"},
+            {id:99, rule:"先有信譽 → 再有機會", what:"信譽累積合作機會。", why:"長期信用降低交易成本。", effect:"提高機會密度。"},
+            {id:100, rule:"先有合作 → 再有共創", what:"共創超越個人能力。", why:"系統合作創造倍增。", effect:"提高整體產出。"},
+            {id:101, rule:"先有教育 → 再有文明", what:"文明依賴知識傳承。", why:"教育讓能力跨世代。", effect:"推動文明演化。"},
+            {id:102, rule:"先有文化 → 再有制度", what:"制度建立於共同文化。", why:"文化塑造集體行為。", effect:"提高組織穩定性。"},
+            {id:103, rule:"先有制度 → 再有效率", what:"好制度降低混亂。", why:"規則減少摩擦。", effect:"提高整體效率。"},
+            {id:104, rule:"先有秩序 → 再有自由", what:"自由需要秩序支撐。", why:"混亂限制真正自由。", effect:"提高社會合作。"},
+            {id:105, rule:"先有責任 → 再有權利", what:"權利伴隨責任。", why:"承擔帶來信任。", effect:"建立成熟人格。"},
+            {id:106, rule:"先有承諾 → 再有信用", what:"信用建立於履約。", why:"承諾塑造信任。", effect:"提高合作品質。"},
+            {id:107, rule:"先有信用 → 再有資本", what:"信用是一種無形資本。", why:"信任可降低成本。", effect:"放大合作機會。"},
+            {id:108, rule:"先有願景 → 再有動力", what:"願景提供長期方向。", why:"意義支撐努力。", effect:"提高持續力。"},
+            {id:109, rule:"先有意義 → 再有幸福", what:"幸福來自意義感。", why:"滿足不只是享樂。", effect:"提高生命品質。"},
+            {id:110, rule:"先有感恩 → 再有滿足", what:"感恩改變注意力。", why:"看見已有而非缺乏。", effect:"提高心理韌性。"},
+            {id:111, rule:"先有敬畏 → 再有智慧", what:"敬畏避免過度自信。", why:"承認有限促進學習。", effect:"提高判斷品質。"},
+            {id:112, rule:"先有謙卑 → 再有更新", what:"謙卑才能接受新證據。", why:"自滿阻礙演化。", effect:"提高學習能力。"},
+            {id:113, rule:"先有好奇 → 再有創新", what:"創新源於探索未知。", why:"好奇驅動發現。", effect:"提高創造力。"},
+            {id:114, rule:"先有探索 → 再有演化", what:"演化需要持續嘗試。", why:"探索增加可能性。", effect:"提高適應力。"},
+            {id:115, rule:"先有選擇 → 再有自由", what:"自由來自可選方案。", why:"能力增加選擇。", effect:"提高自主性。"},
+            {id:116, rule:"先有能力 → 再有自由", what:"能力擴大人生可能。", why:"自由建立於能力。", effect:"提高人生主導權。"},
+            {id:117, rule:"先有智慧 → 再有平靜", what:"理解降低內耗。", why:"看懂規律減少焦慮。", effect:"提高心理穩定。"},
+            {id:118, rule:"先有更新 → 再有未來", what:"未來由更新創造。", why:"固守舊模型難適應。", effect:"建立未來競爭力。"},
+            {id:119, rule:"先有演化 → 再有永續", what:"永續來自持續適應。", why:"不演化終將淘汰。", effect:"提高長期存活率。"},
+            {id:120, rule:"先有智慧生成 → 再有生命升級", what:"智慧是持續更新的結果。", why:"能力整合產生新的層次。", effect:"實現持續成長與生命複利。"},
+            {id:121, rule:"先有資訊 → 再有知識", what:"知識來自整理過的資訊。", why:"資訊本身沒有價值，理解才有價值。", effect:"提高知識吸收能力。"},
+            {id:122, rule:"先有知識 → 再有能力", what:"能力是可重複運用的知識。", why:"知識需要經過練習。", effect:"提高執行能力。"},
+            {id:123, rule:"先有能力 → 再有智慧", what:"智慧是多能力整合。", why:"單一能力不足以應對複雜世界。", effect:"提高跨領域整合能力。"},
+            {id:124, rule:"先有智慧 → 再有判斷", what:"判斷來自整體理解。", why:"智慧讓決策更接近現實。", effect:"提高決策品質。"},
+            {id:125, rule:"先有理解 → 再有包容", what:"理解降低衝突。", why:"看懂原因就較少責怪。", effect:"提高人際品質。"},
+            {id:126, rule:"先有包容 → 再有合作", what:"合作需要接納差異。", why:"尊重不同才能共創。", effect:"提高合作能力。"},
+            {id:127, rule:"先有傾聽 → 再有理解", what:"傾聽是理解入口。", why:"不傾聽容易誤解。", effect:"提高溝通品質。"},
+            {id:128, rule:"先有理解 → 再有影響", what:"人們願意被理解的人影響。", why:"理解先於說服。", effect:"提高領導力。"},
+            {id:129, rule:"先有尊重 → 再有信任", what:"尊重建立心理安全。", why:"信任建立於被尊重。", effect:"提高關係穩定度。"},
+            {id:130, rule:"先有安全感 → 再有探索", what:"安全是探索基礎。", why:"沒有安全感容易防衛。", effect:"提高學習動機。"},
+            {id:131, rule:"先有穩定 → 再有冒險", what:"穩定提供探索資本。", why:"穩定降低風險。", effect:"提高創新成功率。"},
+            {id:132, rule:"先有界線 → 再有自由", what:"界線保護合作。", why:"清楚界線降低衝突。", effect:"提高關係品質。"},
+            {id:133, rule:"先有自律 → 再有自信", what:"自信來自可預測的自己。", why:"行動累積信心。", effect:"提高自我效能。"},
+            {id:134, rule:"先有自我效能 → 再有勇氣", what:"勇氣建立於能力感。", why:"能做才敢做。", effect:"提高挑戰能力。"},
+            {id:135, rule:"先有勇氣 → 再有突破", what:"突破需要跨出舒適圈。", why:"害怕限制成長。", effect:"提高成長速度。"},
+            {id:136, rule:"先有覺察 → 再有選擇", what:"覺察讓反應變成選擇。", why:"沒覺察只能本能反應。", effect:"提高自主能力。"},
+            {id:137, rule:"先有選擇 → 再有改變", what:"改變來自不同選擇。", why:"相同行為得到相同結果。", effect:"提高改變能力。"},
+            {id:138, rule:"先有改變 → 再有新人生", what:"人生是長期選擇累積。", why:"每次改變都重塑未來。", effect:"提高人生品質。"},
+            {id:139, rule:"先有接受 → 再有平靜", what:"接受降低內在衝突。", why:"抗拒增加痛苦。", effect:"提高心理健康。"},
+            {id:140, rule:"先有平靜 → 再有清晰", what:"平靜提高認知品質。", why:"情緒干擾判斷。", effect:"提高思考能力。"},
+            {id:141, rule:"先有清晰 → 再有聚焦", what:"聚焦需要知道重點。", why:"清楚才能專注。", effect:"提高效率。"},
+            {id:142, rule:"先有聚焦 → 再有深度", what:"深度來自長時間投入。", why:"分心降低品質。", effect:"提高專業能力。"},
+            {id:143, rule:"先有深度 → 再有價值", what:"深度創造不可取代性。", why:"表面知識容易被取代。", effect:"提高競爭力。"},
+            {id:144, rule:"先有價值 → 再有影響力", what:"影響力源於價值輸出。", why:"幫助越多人，影響越大。", effect:"提高社會貢獻。"},
+            {id:145, rule:"先有服務 → 再有信任", what:"真正服務建立長期關係。", why:"利他促進合作。", effect:"提高品牌價值。"},
+            {id:146, rule:"先有分享 → 再有學會", what:"教別人最能內化。", why:"分享促進理解。", effect:"提高學習效果。"},
+            {id:147, rule:"先有教學 → 再有精通", what:"精通需要重新組織知識。", why:"教學暴露盲點。", effect:"提高專業能力。"},
+            {id:148, rule:"先有整理 → 再有系統", what:"系統來自整理。", why:"混亂降低效率。", effect:"提高知識管理能力。"},
+            {id:149, rule:"先有系統 → 再有智慧", what:"智慧是系統化理解。", why:"系統整合零散知識。", effect:"提高遷移能力。"},
+            {id:150, rule:"先有模型 → 再有效率", what:"模型降低思考成本。", why:"每次不用重新開始。", effect:"提高決策速度。"},
+            {id:151, rule:"先有原理 → 再有技巧", what:"技巧源於原理。", why:"原理能跨情境遷移。", effect:"提高應變能力。"},
+            {id:152, rule:"先有規則 → 再有例外", what:"例外建立於規則。", why:"不懂規則容易誤判。", effect:"提高判斷能力。"},
+            {id:153, rule:"先有簡單 → 再有複雜", what:"複雜建立於簡單。", why:"基礎決定高度。", effect:"提高學習效率。"},
+            {id:154, rule:"先有基本功 → 再有高手", what:"高手來自基本功。", why:"基礎決定上限。", effect:"提高長期實力。"},
+            {id:155, rule:"先有重複 → 再有自動化", what:"自動化來自神經可塑性。", why:"重複建立迴路。", effect:"降低認知成本。"},
+            {id:156, rule:"先有自動化 → 再有創造力", what:"基礎自動化釋放腦力。", why:"不必耗費意志力。", effect:"提高創新能力。"},
+            {id:157, rule:"先有節奏 → 再有持續", what:"節奏比爆發重要。", why:"穩定勝過短暫努力。", effect:"建立長期習慣。"},
+            {id:158, rule:"先有習慣 → 再有複利", what:"習慣每天累積成果。", why:"小改變放大未來。", effect:"建立複利人生。"},
+            {id:159, rule:"先有複利 → 再有巨大差距", what:"長期累積產生倍增。", why:"時間放大能力。", effect:"提高競爭優勢。"},
+            {id:160, rule:"先有演化 → 再有文明", what:"文明是不斷更新累積。", why:"社會依靠持續學習。", effect:"推動整體進步。"},
+            {id:161, rule:"先有客觀 → 再有真實", what:"客觀降低偏見。", why:"真實不等於感受。", effect:"提高事實辨識力。"},
+            {id:162, rule:"先有事實 → 再有觀點", what:"觀點應建立於事實。", why:"先觀察後評論。", effect:"提高理性思考。"},
+            {id:163, rule:"先有證據 → 再有信念", what:"信念需要持續驗證。", why:"避免迷信與偏見。", effect:"提高更新能力。"},
+            {id:164, rule:"先有更新 → 再有進化", what:"更新是演化最小單位。", why:"每次修正都在進化。", effect:"提高適應能力。"},
+            {id:165, rule:"先有適應 → 再有生存", what:"生存依賴適應環境。", why:"固定模式容易淘汰。", effect:"提高韌性。"},
+            {id:166, rule:"先有韌性 → 再有長壽", what:"韌性提升恢復速度。", why:"能恢復比不跌倒重要。", effect:"提高生命力。"},
+            {id:167, rule:"先有恢復 → 再有輸出", what:"恢復決定輸出品質。", why:"長期高壓降低效率。", effect:"提高持續戰力。"},
+            {id:168, rule:"先有健康 → 再有自由", what:"健康擴大人生選擇。", why:"身體是能力載體。", effect:"提高生活品質。"},
+            {id:169, rule:"先有生命力 → 再有創造力", what:"能量支持創造。", why:"疲勞降低思考。", effect:"提高創新能力。"},
+            {id:170, rule:"先有創造 → 再有價值", what:"創造解決新問題。", why:"價值來自創新。", effect:"提高社會影響。"},
+            {id:171, rule:"先有價值交換 → 再有經濟", what:"經濟本質是交換。", why:"解決問題創造收入。", effect:"建立正確財富觀。"},
+            {id:172, rule:"先有長期 → 再有偉大", what:"偉大來自長期累積。", why:"一時成功不代表卓越。", effect:"建立長期主義。"},
+            {id:173, rule:"先有使命 → 再有堅持", what:"使命提供持續動力。", why:"意義超越困難。", effect:"提高持續力。"},
+            {id:174, rule:"先有信仰 → 再有方向", what:"信仰提供最高價值排序。", why:"幫助面對未知。", effect:"提高內在穩定。"},
+            {id:175, rule:"先有愛 → 再有奉獻", what:"愛超越利益交換。", why:"愛促進合作。", effect:"提高幸福感。"},
+            {id:176, rule:"先有智慧 → 再有慈悲", what:"理解他人才能真正慈悲。", why:"智慧避免盲目同情。", effect:"提高人際品質。"},
+            {id:177, rule:"先有真理 → 再有自由", what:"真理降低錯誤預測。", why:"越接近現實越自由。", effect:"提高生命品質。"},
+            {id:178, rule:"先有自由 → 再有責任", what:"自由伴隨責任。", why:"真自由不是放縱。", effect:"建立成熟人格。"},
+            {id:179, rule:"先有成熟 → 再有影響", what:"成熟讓人值得信任。", why:"人格決定影響力。", effect:"提高領導能力。"},
+            {id:180, rule:"先有持續更新 → 再有持續智慧", what:"智慧不是終點，而是不斷更新。", why:"每次更新都讓模型更接近真實世界。", effect:"建立終身演化的生命作業系統。"},
+            {id:181, rule:"先有未知 → 再有學習", what:"學習始於承認不知道。", why:"未知是更新入口。", effect:"提高成長速度。"},
+            {id:182, rule:"先有好奇 → 再有知識", what:"好奇驅動探索。", why:"探索增加新證據。", effect:"提高自主學習。"},
+            {id:183, rule:"先有疑問 → 再有理解", what:"問題產生理解。", why:"思考始於提問。", effect:"提高思辨能力。"},
+            {id:184, rule:"先有矛盾 → 再有突破", what:"矛盾暴露模型不足。", why:"衝突促進更新。", effect:"提高創新能力。"},
+            {id:185, rule:"先有衝突 → 再有整合", what:"整合高於對立。", why:"理解不同模型。", effect:"提高系統思維。"},
+            {id:186, rule:"先有複雜 → 再有簡化", what:"簡化來自理解。", why:"高手能抓住本質。", effect:"提高表達能力。"},
+            {id:187, rule:"先有混亂 → 再有秩序", what:"秩序來自整理。", why:"混亂暴露結構缺口。", effect:"提高整理能力。"},
+            {id:188, rule:"先有雜訊 → 再有訊號", what:"訊號藏在雜訊中。", why:"辨識才有價值。", effect:"提高洞察力。"},
+            {id:189, rule:"先有資料 → 再有資訊", what:"資料需賦予意義。", why:"未整理只是數據。", effect:"提高分析能力。"},
+            {id:190, rule:"先有資訊 → 再有模型", what:"模型整合資訊。", why:"模型提升預測。", effect:"提高決策能力。"},
+            {id:191, rule:"先有模型 → 再有導航", what:"模型提供方向。", why:"地圖先於旅行。", effect:"提高行動效率。"},
+            {id:192, rule:"先有導航 → 再有抵達", what:"路徑影響結果。", why:"少走冤枉路。", effect:"提高成功率。"},
+            {id:193, rule:"先有定位 → 再有前進", what:"知道位置才能規劃。", why:"診斷先於治療。", effect:"提高改善效率。"},
+            {id:194, rule:"先有診斷 → 再有處方", what:"找根因比治症狀重要。", why:"問題定義決定方案。", effect:"降低重複犯錯。"},
+            {id:195, rule:"先有根因 → 再有解法", what:"根因決定策略。", why:"治本不治標。", effect:"提高改善效果。"},
+            {id:196, rule:"先有結構 → 再有最佳化", what:"最佳化建立於結構。", why:"沒結構難優化。", effect:"提高效率。"},
+            {id:197, rule:"先有最佳化 → 再有卓越", what:"卓越來自持續優化。", why:"每次改善一點點。", effect:"建立複利成長。"},
+            {id:198, rule:"先有一致性 → 再有可靠性", what:"穩定比偶然重要。", why:"一致建立信任。", effect:"提高專業形象。"},
+            {id:199, rule:"先有可靠性 → 再有品牌", what:"品牌源自長期一致。", why:"信任勝過宣傳。", effect:"提高影響力。"},
+            {id:200, rule:"先有品牌 → 再有機會", what:"品牌降低合作成本。", why:"好名聲吸引合作。", effect:"增加資源。"},
+            {id:201, rule:"先有責任 → 再有領導", what:"領導先承擔責任。", why:"權力伴隨責任。", effect:"提高領導力。"},
+            {id:202, rule:"先有榜樣 → 再有影響", what:"行動比語言有力。", why:"示範勝過說教。", effect:"提高說服力。"},
+            {id:203, rule:"先有文化 → 再有行為", what:"環境塑造行為。", why:"文化勝過命令。", effect:"提高團隊效率。"},
+            {id:204, rule:"先有環境 → 再有習慣", what:"環境影響選擇。", why:"好環境降低成本。", effect:"提高自律能力。"},
+            {id:205, rule:"先有設計 → 再有行為", what:"行為受設計影響。", why:"設計改變選擇。", effect:"提高行動率。"},
+            {id:206, rule:"先有提示 → 再有習慣", what:"習慣需要觸發器。", why:"提示啟動行動。", effect:"提高執行率。"},
+            {id:207, rule:"先有開始 → 再有完成", what:"完成始於開始。", why:"開始成本最大。", effect:"降低拖延。"},
+            {id:208, rule:"先有小成功 → 再有大成功", what:"小勝累積信心。", why:"成功具有複利。", effect:"提高持續動力。"},
+            {id:209, rule:"先有回報 → 再有堅持", what:"回饋強化習慣。", why:"大腦偏好獎賞。", effect:"提高持續性。"},
+            {id:210, rule:"先有動機 → 再有投入", what:"動機提供能量。", why:"有意義才會投入。", effect:"提高學習效率。"},
+            {id:211, rule:"先有投入 → 再有精進", what:"投入增加熟練。", why:"時間累積能力。", effect:"提高專業度。"},
+            {id:212, rule:"先有專注 → 再有精通", what:"精通需要深度專注。", why:"分心降低品質。", effect:"提高核心能力。"},
+            {id:213, rule:"先有耐挫 → 再有成功", what:"挫折是必經之路。", why:"成功需要恢復力。", effect:"提高韌性。"},
+            {id:214, rule:"先有恢復 → 再有持續", what:"恢復支持長期努力。", why:"過勞降低表現。", effect:"提高續航力。"},
+            {id:215, rule:"先有節制 → 再有健康", what:"節制降低耗損。", why:"過度消耗身體。", effect:"提高生命力。"},
+            {id:216, rule:"先有平衡 → 再有永續", what:"平衡才能長久。", why:"偏向極端易崩潰。", effect:"提高穩定性。"},
+            {id:217, rule:"先有穩定 → 再有成長", what:"穩定是成長平台。", why:"混亂降低效率。", effect:"提高發展速度。"},
+            {id:218, rule:"先有紀律 → 再有成果", what:"紀律勝過激情。", why:"長期重複最重要。", effect:"建立複利。"},
+            {id:219, rule:"先有耐心 → 再有成熟", what:"成熟需要時間。", why:"急躁限制演化。", effect:"提高判斷力。"},
+            {id:220, rule:"先有時間 → 再有複利", what:"時間放大所有行為。", why:"好壞習慣都會累積。", effect:"提高長期思維。"},
+            {id:221, rule:"先有今天 → 再有未來", what:"未來由今天累積。", why:"每天都是投資。", effect:"建立日常習慣。"},
+            {id:222, rule:"先有當下 → 再有改變", what:"改變只能發生現在。", why:"行動永遠在當下。", effect:"提高執行力。"},
+            {id:223, rule:"先有行動 → 再有證據", what:"行動產生現實資料。", why:"不做沒有回饋。", effect:"提高更新速度。"},
+            {id:224, rule:"先有證據 → 再有修正", what:"新證據更新模型。", why:"證據優於感覺。", effect:"提高客觀性。"},
+            {id:225, rule:"先有客觀 → 再有智慧", what:"智慧接近真實。", why:"偏見限制判斷。", effect:"提高決策品質。"},
+            {id:226, rule:"先有真實 → 再有自由", what:"真實增加預測準確。", why:"越接近現實越自由。", effect:"提高適應力。"},
+            {id:227, rule:"先有自由 → 再有創造", what:"自由增加可能性。", why:"更多選項產生創新。", effect:"提高創造力。"},
+            {id:228, rule:"先有創造 → 再有文明", what:"文明來自持續創造。", why:"創新推動演化。", effect:"提高社會價值。"},
+            {id:229, rule:"先有文明 → 再有傳承", what:"傳承保存智慧。", why:"知識跨世代累積。", effect:"提高文明高度。"},
+            {id:230, rule:"先有傳承 → 再有未來", what:"未來建立於傳承。", why:"不必重複走錯路。", effect:"加速演化。"},
+            {id:231, rule:"先有理解限制 → 再有突破限制", what:"看見限制才能突破。", why:"忽略限制容易失敗。", effect:"提高成功率。"},
+            {id:232, rule:"先有資源 → 再有配置", what:"資源需有效運用。", why:"配置比擁有重要。", effect:"提高效益。"},
+            {id:233, rule:"先有成本 → 再有決策", what:"每個選擇都有代價。", why:"決策就是取捨。", effect:"提高判斷力。"},
+            {id:234, rule:"先有機會成本 → 再有最佳選擇", what:"放棄也是成本。", why:"比較所有可能。", effect:"提高資源配置能力。"},
+            {id:235, rule:"先有概率 → 再有風險", what:"未來充滿不確定。", why:"機率優於絕對。", effect:"提高風險管理。"},
+            {id:236, rule:"先有風險 → 再有準備", what:"準備降低損失。", why:"預防勝於補救。", effect:"提高韌性。"},
+            {id:237, rule:"先有預防 → 再有健康", what:"健康重於治療。", why:"降低疾病機率。", effect:"提高生命品質。"},
+            {id:238, rule:"先有修復 → 再有強化", what:"修復先於增強。", why:"壞掉需先恢復。", effect:"提高恢復力。"},
+            {id:239, rule:"先有基礎 → 再有進階", what:"高樓建立於地基。", why:"基礎決定高度。", effect:"提高成長上限。"},
+            {id:240, rule:"先有生命 → 再有使命", what:"活著才能完成使命。", why:"健康支撐理想。", effect:"提高人生價值。"},
+            {id:241, rule:"先有使命 → 再有願景", what:"願景來自使命。", why:"知道為何而活。", effect:"提高持續力。"},
+            {id:242, rule:"先有願景 → 再有系統", what:"願景需要系統實現。", why:"理想需落地。", effect:"提高實現率。"},
+            {id:243, rule:"先有系統 → 再有成果", what:"系統穩定產出成果。", why:"靠系統不靠意志。", effect:"提高可持續性。"},
+            {id:244, rule:"先有成果 → 再有影響", what:"成果建立信任。", why:"實力勝於口號。", effect:"提高影響力。"},
+            {id:245, rule:"先有影響 → 再有改變世界", what:"世界因影響而改變。", why:"小影響累積大改變。", effect:"擴大貢獻。"},
+            {id:246, rule:"先有利他 → 再有共贏", what:"共贏創造最大價值。", why:"零和限制發展。", effect:"提高合作。"},
+            {id:247, rule:"先有共贏 → 再有永續", what:"永續建立於共同利益。", why:"單贏難長久。", effect:"提高長期合作。"},
+            {id:248, rule:"先有感恩 → 再有幸福", what:"幸福來自看見擁有。", why:"注意力決定感受。", effect:"提高幸福感。"},
+            {id:249, rule:"先有幸福 → 再有分享", what:"滿足促進分享。", why:"富足感降低競爭。", effect:"提高關係品質。"},
+            {id:250, rule:"先有愛 → 再有智慧人生", what:"愛整合知識、能力與價值。", why:"真正成熟包含愛與智慧。", effect:"提高生命完整性。"},
+            {id:251, rule:"先有第一性原理 → 再有所有知識", what:"第一性原理是知識基礎。", why:"理解本質才能遷移。", effect:"提高學習遷移力。"},
+            {id:252, rule:"先有世界模型 → 再有人生模型", what:"人生模型源於世界觀。", why:"模型決定視角。", effect:"提高決策一致性。"},
+            {id:253, rule:"先有人生模型 → 再有生命策略", what:"策略源於清晰模型。", why:"模型指引方向。", effect:"提高行動方向。"},
+            {id:254, rule:"先有生命策略 → 再有每日行動", what:"行動實現策略。", why:"大目標由小行動累積。", effect:"提高執行力。"},
+            {id:255, rule:"先有每日行動 → 再有長期人生", what:"人生是行動累積。", why:"每天決定未來。", effect:"建立長期主義。"},
+            {id:256, rule:"先有長期思維 → 再有複利人生", what:"複利源於長期投入。", why:"時間是最好的朋友。", effect:"提高複利效應。"},
+            {id:257, rule:"先有系統更新 → 再有文明更新", what:"文明升級源於系統進化。", why:"系統改變帶動文化。", effect:"推動社會進步。"},
+            {id:258, rule:"先有文明更新 → 再有人類演化", what:"人類演化需文明支撐。", why:"文明是演化的加速器。", effect:"提高文明高度。"},
+            {id:259, rule:"先有演化 → 再有智慧", what:"智慧來自演化經驗。", why:"演化積累智慧。", effect:"提高適應力。"},
+            {id:260, rule:"先有智慧 → 再有文明", what:"文明建立於集體智慧。", why:"智慧指導文明。", effect:"建立高階文明。"},
+            {id:261, rule:"先有現實 → 再有認知", what:"認知應建立於現實。", why:"現實是所有模型的來源。", effect:"降低幻想。"},
+            {id:262, rule:"先有認知 → 再有決策", what:"決策反映認知品質。", why:"錯誤認知產生錯誤選擇。", effect:"提高決策品質。"},
+            {id:263, rule:"先有決策 → 再有命運", what:"命運來自長期決策。", why:"人生是決策累積。", effect:"提高人生主導權。"},
+            {id:264, rule:"先有目標函數 → 再有最佳化", what:"系統依目標運作。", why:"沒目標無法最佳化。", effect:"提高效率。"},
+            {id:265, rule:"先有導航系統 → 再有方向", what:"導航避免迷航。", why:"地圖比速度重要。", effect:"降低錯誤成本。"},
+            {id:266, rule:"先有控制 → 再有穩定", what:"控制維持系統平衡。", why:"回饋保持穩定。", effect:"提高韌性。"},
+            {id:267, rule:"先有回授 → 再有控制", what:"控制依靠回授。", why:"沒回饋無法修正。", effect:"提高自我調節。"},
+            {id:268, rule:"先有誤差 → 再有校正", what:"誤差提供更新方向。", why:"偏差暴露不足。", effect:"提高精準度。"},
+            {id:269, rule:"先有校正 → 再有準確", what:"校正讓模型接近現實。", why:"不斷逼近真實。", effect:"提高預測力。"},
+            {id:270, rule:"先有預測 → 再有控制", what:"預測降低不確定。", why:"預測讓行動提前。", effect:"提高效率。"},
+            {id:271, rule:"先有自由能 → 再有更新", what:"預測誤差驅動更新。", why:"降低自由能。", effect:"提高適應能力。"},
+            {id:272, rule:"先有熵增 → 再有整理", what:"熵增是自然趨勢。", why:"秩序需要投入能量。", effect:"提高組織能力。"},
+            {id:273, rule:"先有秩序 → 再有效率", what:"秩序降低浪費。", why:"好系統降低摩擦。", effect:"提高效能。"},
+            {id:274, rule:"先有資訊熵 → 再有知識壓縮", what:"智慧是資訊壓縮。", why:"找到共同規律。", effect:"提高遷移能力。"},
+            {id:275, rule:"先有壓縮 → 再有智慧", what:"智慧是高密度模型。", why:"少量原理解釋大量現象。", effect:"提高理解速度。"},
+            {id:276, rule:"先有抽象 → 再有遷移", what:"抽象提升泛化能力。", why:"本質跨情境適用。", effect:"提高學習效率。"},
+            {id:277, rule:"先有遷移 → 再有創新", what:"創新來自跨領域組合。", why:"知識重新連結。", effect:"提高創造力。"},
+            {id:278, rule:"先有組合 → 再有創造", what:"新價值源於新組合。", why:"創造不是憑空產生。", effect:"提高創新能力。"},
+            {id:279, rule:"先有生成 → 再有演化", what:"演化持續生成新解。", why:"每次更新都是生成。", effect:"提高適應力。"},
+            {id:280, rule:"先有演算法 → 再有輸出", what:"系統依規則運作。", why:"規則決定結果。", effect:"提高系統思維。"},
+            {id:281, rule:"先有規則 → 再有預測", what:"規則建立預測能力。", why:"找規律降低未知。", effect:"提高分析力。"},
+            {id:282, rule:"先有限制條件 → 再有最佳解", what:"最佳解受限制影響。", why:"沒有限制沒有最佳化。", effect:"提高策略能力。"},
+            {id:283, rule:"先有搜尋 → 再有答案", what:"答案需經搜尋。", why:"探索增加可能性。", effect:"提高問題解決能力。"},
+            {id:284, rule:"先有探索空間 → 再有發現", what:"發現來自搜尋。", why:"增加可能性。", effect:"提高創新。"},
+            {id:285, rule:"先有選項 → 再有最佳選擇", what:"選擇建立於比較。", why:"更多選項更自由。", effect:"提高決策品質。"},
+            {id:286, rule:"先有機率 → 再有策略", what:"策略管理機率。", why:"不確定需要策略。", effect:"提高成功率。"},
+            {id:287, rule:"先有策略 → 再有競爭優勢", what:"優勢源於策略。", why:"努力需有方向。", effect:"提高成果。"},
+            {id:288, rule:"先有槓桿 → 再有倍增", what:"槓桿放大成果。", why:"找對節點勝過努力。", effect:"提高ROI。"},
+            {id:289, rule:"先有節點 → 再有網路", what:"系統由節點組成。", why:"關鍵節點影響全局。", effect:"提高系統設計能力。"},
+            {id:290, rule:"先有連結 → 再有知識圖譜", what:"知識來自關聯。", why:"孤立知識難應用。", effect:"提高整合力。"},
+            {id:291, rule:"先有圖譜 → 再有導航", what:"圖譜提供搜尋路徑。", why:"系統化管理知識。", effect:"提高學習速度。"},
+            {id:292, rule:"先有分類 → 再有搜尋", what:"分類降低搜尋成本。", why:"有結構才容易找到。", effect:"提高效率。"},
+            {id:293, rule:"先有索引 → 再有記憶", what:"索引提高提取速度。", why:"記憶需要定位。", effect:"提高回憶能力。"},
+            {id:294, rule:"先有提取 → 再有應用", what:"能提取才能運用。", why:"記住不等於會用。", effect:"提高實戰能力。"},
+            {id:295, rule:"先有應用 → 再有精熟", what:"精熟來自應用。", why:"使用強化神經連結。", effect:"提高熟練度。"},
+            {id:296, rule:"先有重組 → 再有突破", what:"突破來自重新組織。", why:"換框架勝過加努力。", effect:"提高創新能力。"},
+            {id:297, rule:"先有重構 → 再有升級", what:"升級是結構更新。", why:"修補不如重構。", effect:"提高系統品質。"},
+            {id:298, rule:"先有升級 → 再有新能力", what:"能力來自結構提升。", why:"更新產生新功能。", effect:"提高競爭力。"},
+            {id:299, rule:"先有新能力 → 再有新身份", what:"身份反映能力集合。", why:"持續更新身份。", effect:"提高成長動力。"},
+            {id:300, rule:"先有新身份 → 再有新人生", what:"人生是身份的長期輸出。", why:"身份決定選擇。", effect:"改變命運。"}
+        ];
+
+        let allLaws = [...lawsData];
+        let currentViewMode = 'grid';
+
+        function createLawCard(law) {
+            const whatEn = translateConcept(law.what);
+            const whyEn = translateConcept(law.why);
+            const effectEn = translateConcept(law.effect);
+
+            return `
+                <div class="law-card collapsed" onclick="toggleCard(this)" data-id="${law.id}">
+                    <span class="law-number">#${law.id}</span>
+                    <div class="law-rule">
+                        <span class="rule-arrow">→</span>
+                        <span>${law.rule}</span>
+                    </div>
+                    <div class="law-details">
+                        <div class="detail-block">
+                            <label class="detail-label">本質 What</label>
+                            <div class="detail-zh">${law.what}</div>
+                            <div class="detail-en">${whatEn}</div>
+                        </div>
+                        <div class="detail-block">
+                            <label class="detail-label">意義 Why</label>
+                            <div class="detail-zh">${law.why}</div>
+                            <div class="detail-en">${whyEn}</div>
+                        </div>
+                        <div class="detail-block" style="grid-column: 1 / -1;">
+                            <label class="detail-label">功效 Effect</label>
+                            <div class="detail-zh">${law.effect}</div>
+                            <div class="detail-en">${effectEn}</div>
+                            <button class="tts-btn" onclick="speakText(event, '${law.effect.replace(/'/g, "\\'")} ${effectEn.replace(/'/g, "\\'")}')">🔊 英文發音</button>
+                        </div>
+                    </div>
+                    <div class="expand-hint">點擊展開完整內容 | Click to expand details</div>
+                </div>
+            `;
+        }
+
+        function translateConcept(zh) {
+            const translations = {
+                "大腦不是被動接收世界，而是先建立預測，再用感官修正。": "The brain is not a passive receiver of the world, but actively predicts and then corrects using senses.",
+                "信念決定注意力的方向。": "Beliefs determine the direction of attention.",
+                "理性常是為既有立場辯護。": "Rationality often serves to defend existing positions.",
+                "情緒常先於意識推理。": "Emotions often precede conscious reasoning.",
+                "情緒反映需求是否被滿足。": "Emotions reflect whether needs are satisfied.",
+                "選擇來自內在權重。": "Choices come from internal priorities.",
+                "世界模型決定如何理解事件。": "World models determine how to interpret events.",
+                "注意力決定資訊是否進入記憶。": "Attention determines whether information enters memory.",
+                "問題定義決定答案品質。": "Problem definition determines answer quality.",
+                "沒有結構，資訊只是雜訊。": "Without structure, information is just noise.",
+                "所有知識都從假設開始。": "All knowledge begins with assumptions.",
+                "分類降低資訊熵。": "Classification reduces information entropy.",
+                "大腦擅長辨識模式。": "The brain excels at pattern recognition.",
+                "判斷需要因果結構。": "Judgment requires causal structure.",
+                "策略是限制下的最佳解。": "Strategy is the optimal solution under constraints.",
+                "管理本質是降低風險。": "Management is essentially risk reduction.",
+                "成果是能力的輸出。": "Results are the output of capability.",
+                "回饋來自行動。": "Feedback comes from action.",
+                "更新依賴回饋。": "Update depends on feedback.",
+                "成長不是累積，而是更新。": "Growth is not accumulation, but renewal.",
+                "人格是穩定習慣集合。": "Personality is a collection of stable habits.",
+                "命運是人格長期輸出。": "Destiny is the long-term output of personality.",
+                "身份決定行為一致性。": "Identity determines behavioral consistency.",
+                "語言塑造思維。": "Language shapes thought.",
+                "概念是理解單位。": "Concepts are units of understanding.",
+                "理解讓記憶穩固。": "Understanding makes memory solid.",
+                "分析建立於觀察。": "Analysis is built on observation.",
+                "結論必須建立在證據。": "Conclusions must be based on evidence.",
+                "預測依賴模型。": "Prediction depends on models.",
+                "誤差是更新來源。": "Error is the source of updates.",
+                "差異比一致更容易吸引大腦。": "Differences attract the brain more than consistency.",
+                "學習始於注意力投入。": "Learning begins with attention.",
+                "判斷來自比較，而非孤立資訊。": "Judgment comes from comparison, not isolated information.",
+                "未知驅動探索行為。": "The unknown drives exploratory behavior.",
+                "發現來自行動探索。": "Discovery comes from active exploration.",
+                "錯誤暴露模型缺口。": "Errors expose model gaps.",
+                "進步源自持續修正。": "Progress comes from continuous correction.",
+                "壓力迫使系統調整。": "Pressure forces system adjustment.",
+                "突破發生在能力邊界。": "Breakthrough occurs at the edge of capability.",
+                "創意常在限制中誕生。": "Creativity is often born in constraints.",
+                "大型成果來自合作系統。": "Large results come from collaborative systems.",
+                "信任降低合作成本。": "Trust lowers the cost of collaboration.",
+                "共識建立於有效表達。": "Consensus is built on effective communication.",
+                "執行依賴共同目標。": "Execution depends on shared goals.",
+                "自律創造長期自由。": "Self-discipline creates long-term freedom.",
+                "長期收益來自等待。": "Long-term returns come from patience.",
+                "複利需要時間累積。": "Compound interest requires time accumulation.",
+                "聚焦降低認知耗損。": "Focus reduces cognitive waste.",
+                "優先順序決定資源配置。": "Priorities determine resource allocation.",
+                "成果取決於資源運用。": "Results depend on resource utilization.",
+                "身體是所有能力基礎。": "Body is the foundation of all capabilities.",
+                "修復主要發生於睡眠。": "Repair mainly happens during sleep.",
+                "成長需要修復週期。": "Growth requires repair cycles.",
+                "能量比時間更重要。": "Energy is more important than time.",
+                "系統才能持續複製。": "Systems enable continuous replication.",
+                "流程降低變異。": "Processes reduce variation.",
+                "品質建立於標準。": "Quality is built on standards.",
+                "卓越是累積的結果。": "Excellence is the result of accumulation.",
+                "智慧增加選擇能力。": "Wisdom increases the ability to choose.",
+                "演化本質是不斷更新。": "Evolution is essentially continuous update.",
+                "發現始於真實觀察。": "Discovery begins with true observation.",
+                "理解比努力重要。": "Understanding is more important than effort.",
+                "方法只是本質的應用。": "Methods are only the application of essence.",
+                "現象來自底層機制。": "Phenomena come from underlying mechanisms.",
+                "功能建立於結構。": "Function is built on structure.",
+                "關鍵節點影響全局。": "Key nodes affect the whole system.",
+                "結果只是原因累積。": "Results are just the accumulation of causes.",
+                "輸出品質取決於輸入。": "Output quality depends on input.",
+                "知識需轉成能力。": "Knowledge must be converted to capability.",
+                "熟練來自大量重複。": "Proficiency comes from massive repetition.",
+                "成長需要反思。": "Growth requires reflection.",
+                "紀錄讓回饋可見。": "Recording makes feedback visible.",
+                "能衡量才能管理。": "What can be measured can be managed.",
+                "方向決定效率。": "Direction determines efficiency.",
+                "快速走錯方向更危險。": "Quickly going the wrong way is more dangerous.",
+                "路徑決定結果。": "Path determines outcome.",
+                "戰術服從策略。": "Tactics serve strategy.",
+                "原則提供穩定判準。": "Principles provide stable criteria.",
+                "預測依賴規律。": "Prediction depends on patterns.",
+                "智慧來自模式辨識。": "Wisdom comes from pattern recognition.",
+                "提問來自承認未知。": "Questions come from acknowledging ignorance.",
+                "問題決定思考深度。": "Problems determine thinking depth.",
+                "信任需要證據。": "Trust requires evidence.",
+                "知識來自驗證。": "Knowledge comes from verification.",
+                "失敗提供重要資訊。": "Failure provides important information.",
+                "成功來自多次修正。": "Success comes from multiple corrections.",
+                "成果需要時間累積。": "Results require time accumulation.",
+                "複利需要持續。": "Compound returns require continuity.",
+                "穩定建立可信度。": "Stability builds credibility.",
+                "誠實才能看見現實。": "Honesty allows us to see reality.",
+                "接受現實才能改變。": "Accepting reality enables change.",
+                "放下舊模型才能更新。": "Letting go of old models enables update.",
+                "韌性包含調整能力。": "Resilience includes the ability to adjust.",
+                "演化重視適應。": "Evolution values adaptation.",
+                "持續更新才能領先。": "Continuous updates enable leadership.",
+                "知識分享放大價值。": "Knowledge sharing multiplies value.",
+                "價值來自解決問題。": "Value comes from solving problems.",
+                "收入反映價值交換。": "Income reflects value exchange.",
+                "信譽累積合作機會。": "Reputation accumulates collaboration opportunities.",
+                "共創超越個人能力。": "Co-creation transcends individual capability.",
+                "文明依賴知識傳承。": "Civilization depends on knowledge transmission.",
+                "制度建立於共同文化。": "Institutions are built on common culture.",
+                "好制度降低混亂。": "Good institutions reduce chaos.",
+                "自由需要秩序支撐。": "Freedom needs order to support it.",
+                "權利伴隨責任。": "Rights come with responsibilities.",
+                "信用建立於履約。": "Credit is built on fulfilling commitments.",
+                "信用是一種無形資本。": "Credit is a form of intangible capital.",
+                "願景提供長期方向。": "Vision provides long-term direction.",
+                "幸福來自意義感。": "Happiness comes from a sense of meaning.",
+                "感恩改變注意力。": "Gratitude changes attention.",
+                "敬畏避免過度自信。": "Awe prevents overconfidence.",
+                "謙卑才能接受新證據。": "Humility allows us to accept new evidence.",
+                "創新源於探索未知。": "Innovation comes from exploring the unknown.",
+                "演化需要持續嘗試。": "Evolution requires continuous trying.",
+                "自由來自可選方案。": "Freedom comes from available options.",
+                "能力擴大人生可能。": "Capability expands life possibilities.",
+                "理解降低內耗。": "Understanding reduces internal friction.",
+                "未來由更新創造。": "The future is created by updates.",
+                "永續來自持續適應。": "Sustainability comes from continuous adaptation.",
+                "知識來自整理過的資訊。": "Knowledge comes from organized information.",
+                "能力是可重複運用的知識。": "Capability is repeatedly applicable knowledge.",
+                "智慧是多能力整合。": "Wisdom is the integration of multiple capabilities.",
+                "判斷來自整體理解。": "Judgment comes from holistic understanding.",
+                "理解降低衝突。": "Understanding reduces conflict.",
+                "合作需要接納差異。": "Cooperation requires accepting differences.",
+                "傾聽是理解入口。": "Listening is the gateway to understanding.",
+                "人們願意被理解的人影響。": "People are influenced by those who understand them.",
+                "尊重建立心理安全。": "Respect creates psychological safety.",
+                "安全是探索基礎。": "Safety is the foundation for exploration.",
+                "穩定提供探索資本。": "Stability provides exploration capital.",
+                "界線保護合作。": "Boundaries protect cooperation.",
+                "自信來自可預測的自己。": "Confidence comes from being predictable to oneself.",
+                "勇氣建立於能力感。": "Courage is built on a sense of capability.",
+                "突破需要跨出舒適圈。": "Breakthrough requires stepping out of comfort zone.",
+                "覺察讓反應變成選擇。": "Awareness turns reactions into choices.",
+                "改變來自不同選擇。": "Change comes from different choices.",
+                "人生是長期選擇累積。": "Life is the accumulation of long-term choices.",
+                "接受降低內在衝突。": "Acceptance reduces internal conflict.",
+                "平靜提高認知品質。": "Calmness improves cognitive quality.",
+                "聚焦需要知道重點。": "Focus requires knowing the key point.",
+                "深度來自長時間投入。": "Depth comes from long-term investment.",
+                "深度創造不可取代性。": "Depth creates irreplaceability.",
+                "影響力源於價值輸出。": "Influence comes from value output.",
+                "真正服務建立長期關係。": "True service builds long-term relationships.",
+                "教別人最能內化。": "Teaching others best internalizes knowledge.",
+                "精通需要重新組織知識。": "Mastery requires reorganizing knowledge.",
+                "系統來自整理。": "Systems come from organization.",
+                "智慧是系統化理解。": "Wisdom is systematic understanding.",
+                "模型降低思考成本。": "Models reduce thinking cost.",
+                "技巧源於原理。": "Techniques come from principles.",
+                "例外建立於規則。": "Exceptions are built on rules.",
+                "複雜建立於簡單。": "Complexity is built on simplicity.",
+                "高手來自基本功。": "Masters come from fundamentals.",
+                "自動化來自神經可塑性。": "Automation comes from neuroplasticity.",
+                "基礎自動化釋放腦力。": "Basic automation frees brainpower.",
+                "節奏比爆發重要。": "Rhythm is more important than bursts.",
+                "習慣每天累積成果。": "Habits accumulate results daily.",
+                "長期累積產生倍增。": "Long-term accumulation produces multiplication.",
+                "文明是不斷更新累積。": "Civilization is the accumulated result of continuous updates.",
+                "客觀降低偏見。": "Objectivity reduces bias.",
+                "觀點應建立於事實。": "Viewpoints should be based on facts.",
+                "信念需要持續驗證。": "Beliefs require continuous verification.",
+                "更新是演化最小單位。": "Update is the smallest unit of evolution.",
+                "生存依賴適應環境。": "Survival depends on environmental adaptation.",
+                "韌性提升恢復速度。": "Resilience improves recovery speed.",
+                "恢復決定輸出品質。": "Recovery determines output quality.",
+                "健康擴大人生選擇。": "Health expands life choices.",
+                "能量支持創造。": "Energy supports creation.",
+                "創造解決新問題。": "Creation solves new problems.",
+                "經濟本質是交換。": "Economics is essentially exchange.",
+                "偉大來自長期累積。": "Greatness comes from long-term accumulation.",
+                "使命提供持續動力。": "Mission provides continuous motivation.",
+                "信仰提供最高價值排序。": "Faith provides the highest value ordering.",
+                "愛超越利益交換。": "Love transcends benefit exchange.",
+                "理解他人才能真正慈悲。": "True compassion comes from understanding others.",
+                "真理降低錯誤預測。": "Truth reduces erroneous prediction.",
+                "自由伴隨責任。": "Freedom comes with responsibility.",
+                "成熟讓人值得信任。": "Maturity makes one trustworthy.",
+                "智慧不是終點，而是不斷更新。": "Wisdom is not an endpoint, but continuous renewal.",
+                "學習始於承認不知道。": "Learning begins with acknowledging ignorance.",
+                "好奇驅動探索。": "Curiosity drives exploration.",
+                "問題產生理解。": "Problems generate understanding.",
+                "矛盾暴露模型不足。": "Contradiction exposes model insufficiency.",
+                "整合高於對立。": "Integration is higher than opposition.",
+                "簡化來自理解。": "Simplification comes from understanding.",
+                "秩序來自整理。": "Order comes from organization.",
+                "訊號藏在雜訊中。": "Signals are hidden in noise.",
+                "資料需賦予意義。": "Data requires meaning-making.",
+                "模型整合資訊。": "Models integrate information.",
+                "模型提供方向。": "Models provide direction.",
+                "路徑影響結果。": "Path affects outcome.",
+                "知道位置才能規劃。": "One can only plan by knowing position.",
+                "找根因比治症狀重要。": "Finding root causes is more important than treating symptoms.",
+                "根因決定策略。": "Root causes determine strategy.",
+                "最佳化建立於結構。": "Optimization is built on structure.",
+                "卓越來自持續優化。": "Excellence comes from continuous optimization.",
+                "穩定比偶然重要。": "Stability is more important than chance.",
+                "品牌源自長期一致。": "Brands come from long-term consistency.",
+                "領導先承擔責任。": "Leadership assumes responsibility first.",
+                "行動比語言有力。": "Action speaks louder than words.",
+                "環境塑造行為。": "Environment shapes behavior.",
+                "環境影響選擇。": "Environment influences choices.",
+                "行為受設計影響。": "Behavior is influenced by design.",
+                "習慣需要觸發器。": "Habits need triggers.",
+                "完成始於開始。": "Completion begins with beginning.",
+                "小勝累積信心。": "Small wins accumulate confidence.",
+                "回饋強化習慣。": "Feedback reinforces habits.",
+                "動機提供能量。": "Motivation provides energy.",
+                "投入增加熟練。": "Investment increases proficiency.",
+                "精通需要深度專注。": "Mastery requires deep focus.",
+                "挫折是必經之路。": "Setback is a necessary path.",
+                "恢復支持長期努力。": "Recovery supports long-term effort.",
+                "節制降低耗損。": "Restraint reduces waste.",
+                "平衡才能長久。": "Balance enables longevity.",
+                "穩定是成長平台。": "Stability is the platform for growth.",
+                "紀律勝過激情。": "Discipline trumps passion.",
+                "成熟需要時間。": "Maturity requires time.",
+                "時間放大所有行為。": "Time magnifies all behavior.",
+                "未來由今天累積。": "The future is built by today.",
+                "改變只能發生現在。": "Change can only happen now.",
+                "行動產生現實資料。": "Action produces real data.",
+                "新證據更新模型。": "New evidence updates models.",
+                "智慧接近真實。": "Wisdom approaches truth.",
+                "真實增加預測準確。": "Truth increases prediction accuracy.",
+                "自由增加可能性。": "Freedom increases possibility.",
+                "文明來自持續創造。": "Civilization comes from continuous creation.",
+                "傳承保存智慧。": "Inheritance preserves wisdom.",
+                "未來建立於傳承。": "The future is built on inheritance.",
+                "看見限制才能突破。": "Seeing limitations enables breakthrough.",
+                "資源需有效運用。": "Resources require effective utilization.",
+                "每個選擇都有代價。": "Every choice has a cost.",
+                "放棄也是成本。": "Giving up is also a cost.",
+                "未來充滿不確定。": "The future is full of uncertainty.",
+                "準備降低損失。": "Preparation reduces loss.",
+                "健康重於治療。": "Health is more important than treatment.",
+                "修復先於增強。": "Repair precedes enhancement.",
+                "高樓建立於地基。": "High buildings are built on foundations.",
+                "活著才能完成使命。": "One must live to fulfill mission.",
+                "願景需要系統實現。": "Vision requires systematic realization.",
+                "系統穩定產出成果。": "Systems produce stable results.",
+                "成果建立信任。": "Results build trust.",
+                "世界因影響而改變。": "The world changes through influence.",
+                "共贏創造最大價值。": "Win-win creates maximum value.",
+                "永續建立於共同利益。": "Sustainability is built on mutual interest.",
+                "幸福來自看見擁有。": "Happiness comes from seeing what you have.",
+                "滿足促進分享。": "Satisfaction promotes sharing.",
+                "愛整合知識、能力與價值。": "Love integrates knowledge, capability, and value.",
+                "第一性原理是知識基礎。": "First principles are the foundation of knowledge.",
+                "人生模型源於世界觀。": "Life models come from worldviews.",
+                "策略源於清晰模型。": "Strategy comes from clear models.",
+                "行動實現策略。": "Action realizes strategy.",
+                "人生是行動累積。": "Life is accumulated action.",
+                "複利源於長期投入。": "Compound returns come from long-term investment.",
+                "文明升級源於系統進化。": "Civilization upgrades come from system evolution.",
+                "人類演化需文明支撐。": "Human evolution requires civilization support.",
+                "智慧來自演化經驗。": "Wisdom comes from evolutionary experience.",
+                "文明建立於集體智慧。": "Civilization is built on collective wisdom.",
+                "認知應建立於現實。": "Cognition should be based on reality.",
+                "錯誤認知產生錯誤選擇。": "Wrong cognition produces wrong choices.",
+                "命運來自長期決策。": "Destiny comes from long-term decisions.",
+                "系統依目標運作。": "Systems operate toward goals.",
+                "導航避免迷航。": "Navigation prevents getting lost.",
+                "控制維持系統平衡。": "Control maintains system balance.",
+                "控制依靠回授。": "Control depends on feedback.",
+                "誤差提供更新方向。": "Errors provide update direction.",
+                "校正讓模型接近現實。": "Correction brings models closer to reality.",
+                "預測降低不確定。": "Prediction reduces uncertainty.",
+                "預測誤差驅動更新。": "Prediction errors drive updates.",
+                "熵增是自然趨勢。": "Entropy increase is the natural trend.",
+                "秩序需要投入能量。": "Order requires energy investment.",
+                "好系統降低摩擦。": "Good systems reduce friction.",
+                "智慧是資訊壓縮。": "Wisdom is information compression.",
+                "找到共同規律。": "Finding common patterns.",
+                "智慧是高密度模型。": "Wisdom is a high-density model.",
+                "少量原理解釋大量現象。": "Few principles explain many phenomena.",
+                "抽象提升泛化能力。": "Abstraction enhances generalization.",
+                "本質跨情境適用。": "Essence applies across contexts.",
+                "創新來自跨領域組合。": "Innovation comes from cross-domain combination.",
+                "知識重新連結。": "Knowledge is reconnected.",
+                "新價值源於新組合。": "New value comes from new combinations.",
+                "演化持續生成新解。": "Evolution continuously generates new solutions.",
+                "每次更新都是生成。": "Each update is generation.",
+                "系統依規則運作。": "Systems operate by rules.",
+                "規則決定結果。": "Rules determine results.",
+                "規則建立預測能力。": "Rules build predictive ability.",
+                "找規律降低未知。": "Finding patterns reduces unknowns.",
+                "最佳解受限制影響。": "Optimal solutions are affected by constraints.",
+                "沒有限制沒有最佳化。": "Without constraints, no optimization.",
+                "答案需經搜尋。": "Answers require searching.",
+                "探索增加可能性。": "Exploration increases possibility.",
+                "發現來自搜尋。": "Discovery comes from searching.",
+                "選擇建立於比較。": "Choices are based on comparison.",
+                "更多選項更自由。": "More options mean more freedom.",
+                "策略管理機率。": "Strategy manages probability.",
+                "不確定需要策略。": "Uncertainty requires strategy.",
+                "優勢源於策略。": "Advantage comes from strategy.",
+                "努力需有方向。": "Effort needs direction.",
+                "槓桿放大成果。": "Leverage multiplies results.",
+                "找對節點勝過努力。": "Finding the right node beats effort.",
+                "系統由節點組成。": "Systems are composed of nodes.",
+                "關鍵節點影響全局。": "Key nodes affect the whole system.",
+                "知識來自關聯。": "Knowledge comes from associations.",
+                "孤立知識難應用。": "Isolated knowledge is hard to apply.",
+                "圖譜提供搜尋路徑。": "Maps provide search paths.",
+                "系統化管理知識。": "Systematic knowledge management.",
+                "分類降低搜尋成本。": "Classification reduces search cost.",
+                "有結構才容易找到。": "Structure makes things easy to find.",
+                "索引提高提取速度。": "Indexes improve retrieval speed.",
+                "記憶需要定位。": "Memory requires locating.",
+                "能提取才能運用。": "You must retrieve to apply.",
+                "記住不等於會用。": "Remembering is not the same as using.",
+                "使用強化神經連結。": "Use strengthens neural connections.",
+                "突破來自重新組織。": "Breakthrough comes from reorganization.",
+                "換框架勝過加努力。": "Changing frames beats adding effort.",
+                "升級是結構更新。": "Upgrade is structural update.",
+                "修補不如重構。": "Patching is worse than reconstructing.",
+                "能力來自結構提升。": "Capability comes from structural improvement.",
+                "更新產生新功能。": "Updates generate new functions.",
+                "身份反映能力集合。": "Identity reflects the collection of capabilities.",
+                "持續更新身份。": "Continuously update identity.",
+                "人生是身份的長期輸出。": "Life is the long-term output of identity.",
+                "身份決定選擇。": "Identity determines choices.",
+                "提高覺察能力，避免把自己的預測當成現實。": "Improve awareness and avoid mistaking your predictions for reality.",
+                "幫助修正限制信念，增加看見新機會的能力。": "Help correct limiting beliefs and increase the ability to see new opportunities.",
+                "增加客觀思考能力，降低自我欺騙。": "Increase objective thinking ability and reduce self-deception.",
+                "提高情緒覺察與自我調節能力。": "Enhance emotional awareness and self-regulation ability.",
+                "提高需求辨識與溝通能力。": "Improve need recognition and communication ability.",
+                "優化決策品質。": "Optimize decision quality.",
+                "增加模型更新能力。": "Increase model update ability.",
+                "提高學習效率。": "Improve learning efficiency.",
+                "提高思考深度。": "Increase depth of thinking.",
+                "建立系統化思考。": "Establish systematic thinking.",
+                "建立科學思維。": "Establish scientific mindset.",
+                "提高知識整理能力。": "Improve knowledge organization ability.",
+                "提高預測能力。": "Increase prediction ability.",
+                "增加問題分析能力。": "Enhance problem analysis ability.",
+                "提高規劃能力。": "Improve planning ability.",
+                "增加風險管理能力。": "Enhance risk management ability.",
+                "避免追逐短期結果。": "Avoid chasing short-term results.",
+                "建立迭代能力。": "Build iteration ability.",
+                "持續改善能力。": "Continuous improvement ability.",
+                "建立終身學習能力。": "Build lifelong learning ability.",
+                "建立好人格。": "Build good character.",
+                "改變人生方向。": "Change life direction.",
+                "建立長期自律。": "Build long-term self-discipline.",
+                "提升思考品質。": "Improve thinking quality.",
+                "增加抽象能力。": "Increase abstraction ability.",
+                "提高長期記憶。": "Improve long-term memory.",
+                "降低偏見。": "Reduce bias.",
+                "增加客觀判斷。": "Increase objective judgment.",
+                "提高決策品質。": "Improve decision quality.",
+                "增加適應能力。": "Increase adaptability.",
+                "擴展知識邊界。": "Expand knowledge boundaries.",
+                "增加更新速度。": "Increase update speed.",
+                "持續優化能力。": "Continuous optimization ability.",
+                "提高適應能力。": "Improve adaptability.",
+                "提高能力上限。": "Improve capability ceiling.",
+                "增加創新能力。": "Increase innovation ability.",
+                "提高團隊效能。": "Improve team effectiveness.",
+                "建立長期關係。": "Build long-term relationships.",
+                "降低衝突。": "Reduce conflict.",
+                "提高執行效率。": "Improve execution efficiency.",
+                "提高自主能力。": "Improve autonomy.",
+                "提高投資思維。": "Improve investment thinking.",
+                "建立長期優勢。": "Build long-term advantage.",
+                "提高產出效率。": "Improve output efficiency.",
+                "提高資源利用率。": "Improve resource utilization.",
+                "提高ROI。": "Improve ROI.",
+                "提高持續輸出能力。": "Improve sustained output ability.",
+                "提高恢復能力。": "Improve recovery ability.",
+                "提高韌性。": "Improve resilience.",
+                "提高工作品質。": "Improve work quality.",
+                "放大影響力。": "Amplify influence.",
+                "提高可靠性。": "Improve reliability.",
+                "提高一致性。": "Improve consistency.",
+                "建立競爭優勢。": "Build competitive advantage.",
+                "提高人生主導權。": "Improve life autonomy.",
+                "建立終身演化能力。": "Build lifelong evolution ability.",
+                "提高洞察能力。": "Improve insight ability.",
+                "提高改善效率。": "Improve improvement efficiency.",
+                "提高遷移能力。": "Improve transfer ability.",
+                "提高分析能力。": "Improve analysis ability.",
+                "提高系統思維。": "Improve systems thinking.",
+                "提高因果推理能力。": "Improve causal reasoning ability.",
+                "提高學習品質。": "Improve learning quality.",
+                "提高實踐能力。": "Improve practice ability.",
+                "提高技能穩定度。": "Improve skill stability.",
+                "提高學習速度。": "Improve learning speed.",
+                "提高持續改善能力。": "Improve continuous improvement ability.",
+                "提高控制能力。": "Improve control ability.",
+                "提高聚焦能力。": "Improve focus ability.",
+                "提高達成率。": "Improve achievement rate.",
+                "提高成功率。": "Improve success rate.",
+                "降低浪費。": "Reduce waste.",
+                "提高產出能力。": "Improve output ability.",
+                "提高領導力。": "Improve leadership.",
+                "提高系統思維。": "Improve systems thinking.",
+                "提高創新能力。": "Increase innovation ability.",
+                "提高探索能力。": "Improve exploration ability.",
+                "提高判斷能力。": "Improve judgment ability.",
+                "提高判斷品質。": "Improve judgment quality.",
+                "建立科學思維。": "Build scientific mindset.",
+                "提高更新能力。": "Improve update ability.",
+                "提高成功率。": "Improve success rate.",
+                "建立長期思維。": "Build long-term thinking.",
+                "提高長期競爭力。": "Improve long-term competitiveness.",
+                "建立個人品牌。": "Build personal brand.",
+                "提高更新速度。": "Improve update speed.",
+                "提高適應能力。": "Improve adaptability.",
+                "提高認知彈性。": "Improve cognitive flexibility.",
+                "提高抗壓能力。": "Improve stress resilience.",
+                "提高環境適應力。": "Improve environmental adaptability.",
+                "建立長期優勢。": "Build long-term advantage.",
+                "提高影響力。": "Improve influence.",
+                "提高社會價值。": "Improve social value.",
+                "建立健康財務觀。": "Build healthy financial mindset.",
+                "提高機會密度。": "Improve opportunity density.",
+                "提高整體產出。": "Improve overall output.",
+                "推動文明演化。": "Promote civilization evolution.",
+                "提高組織穩定性。": "Improve organizational stability.",
+                "提高整體效率。": "Improve overall efficiency.",
+                "提高社會合作。": "Improve social cooperation.",
+                "建立成熟人格。": "Build mature character.",
+                "提高合作品質。": "Improve cooperation quality.",
+                "放大合作機會。": "Amplify cooperation opportunities.",
+                "提高持續力。": "Improve continuity.",
+                "提高生命品質。": "Improve life quality.",
+                "提高心理韌性。": "Improve psychological resilience.",
+                "提高判斷品質。": "Improve judgment quality.",
+                "提高學習能力。": "Improve learning ability.",
+                "提高創造力。": "Improve creativity.",
+                "提高適應力。": "Improve adaptability.",
+                "提高自主性。": "Improve autonomy.",
+                "提高心理穩定。": "Improve psychological stability.",
+                "建立未來競爭力。": "Build future competitiveness.",
+                "提高長期存活率。": "Improve long-term survival rate.",
+                "實現持續成長與生命複利。": "Achieve sustained growth and life compound returns.",
+                "提高知識吸收能力。": "Improve knowledge absorption.",
+                "提高執行能力。": "Improve execution ability.",
+                "提高跨領域整合能力。": "Improve cross-domain integration ability.",
+                "提高人際品質。": "Improve interpersonal quality.",
+                "提高關係穩定度。": "Improve relationship stability.",
+                "提高學習動機。": "Improve learning motivation.",
+                "提高創新成功率。": "Improve innovation success rate.",
+                "提高關係品質。": "Improve relationship quality.",
+                "提高溝通品質。": "Improve communication quality.",
+                "提高挑戰能力。": "Improve challenge ability.",
+                "提高成長速度。": "Improve growth speed.",
+                "提高自主能力。": "Improve autonomy.",
+                "提高改變能力。": "Improve change ability.",
+                "提高人生品質。": "Improve life quality.",
+                "提高心理健康。": "Improve mental health.",
+                "提高思考能力。": "Improve thinking ability.",
+                "提高效率。": "Improve efficiency.",
+                "提高專業能力。": "Improve professional ability.",
+                "提高競爭力。": "Improve competitiveness.",
+                "降低認知成本。": "Reduce cognitive cost.",
+                "提高創新能力。": "Improve innovation ability.",
+                "建立長期習慣。": "Build long-term habits.",
+                "建立複利人生。": "Build life of compound returns.",
+                "提高競爭優勢。": "Improve competitive advantage.",
+                "推動整體進步。": "Promote overall progress.",
+                "提高事實辨識力。": "Improve fact recognition ability.",
+                "提高理性思考。": "Improve rational thinking.",
+                "提高適應能力。": "Improve adaptability.",
+                "提高韌性。": "Improve resilience.",
+                "提高生命力。": "Improve vitality.",
+                "提高持續戰力。": "Improve sustained fighting capacity.",
+                "提高生活品質。": "Improve life quality.",
+                "提高創新能力。": "Increase innovation ability.",
+                "提高社會影響。": "Improve social influence.",
+                "建立正確財富觀。": "Build correct wealth mindset.",
+                "建立長期主義。": "Build long-termism.",
+                "提高內在穩定。": "Improve inner stability.",
+                "提高幸福感。": "Improve happiness.",
+                "提高人際品質。": "Improve interpersonal quality.",
+                "提高生命品質。": "Improve life quality.",
+                "建立成熟人格。": "Build mature character.",
+                "提高領導能力。": "Improve leadership.",
+                "建立終身演化的生命作業系統。": "Build lifelong evolution of Life OS.",
+                "提高成長速度。": "Improve growth speed.",
+                "提高自主學習。": "Improve self-directed learning.",
+                "提高思辨能力。": "Improve critical thinking.",
+                "提高創新能力。": "Improve innovation ability.",
+                "提高系統思維。": "Improve systems thinking.",
+                "提高表達能力。": "Improve expression ability.",
+                "提高整理能力。": "Improve organization ability.",
+                "提高洞察力。": "Improve insight.",
+                "提高分析能力。": "Improve analysis ability.",
+                "提高決策能力。": "Improve decision-making ability.",
+                "提高行動效率。": "Improve action efficiency.",
+                "提高成功率。": "Improve success rate.",
+                "提高改善效率。": "Improve improvement efficiency.",
+                "降低重複犯錯。": "Reduce repeated mistakes.",
+                "提高改善效果。": "Improve improvement effectiveness.",
+                "建立複利成長。": "Build compound growth.",
+                "提高專業形象。": "Improve professional image.",
+                "增加資源。": "Increase resources.",
+                "提高說服力。": "Improve persuasiveness.",
+                "提高團隊效率。": "Improve team efficiency.",
+                "降低拖延。": "Reduce procrastination.",
+                "提高持續動力。": "Improve sustained motivation.",
+                "提高持續性。": "Improve continuity.",
+                "提高精進度。": "Improve refinement.",
+                "提高核心能力。": "Improve core capabilities.",
+                "提高續航力。": "Improve endurance.",
+                "提高穩定性。": "Improve stability.",
+                "提高發展速度。": "Improve development speed.",
+                "建立日常習慣。": "Build daily habits.",
+                "提高執行力。": "Improve execution.",
+                "提高更新速度。": "Improve update speed.",
+                "提高客觀性。": "Improve objectivity.",
+                "提高適應力。": "Improve adaptability.",
+                "提高創造力。": "Improve creativity.",
+                "提高社會價值。": "Improve social value.",
+                "提高文明高度。": "Improve civilization level.",
+                "加速演化。": "Accelerate evolution.",
+                "降低幻想。": "Reduce fantasy.",
+                "提高人生主導權。": "Improve life autonomy.",
+                "提高風險管理。": "Improve risk management.",
+                "提高組織能力。": "Improve organization ability.",
+                "提高效能。": "Improve effectiveness.",
+                "提高遷移能力。": "Improve transfer ability.",
+                "提高理解速度。": "Improve understanding speed.",
+                "提高學習效率。": "Improve learning efficiency.",
+                "提高問題解決能力。": "Improve problem-solving ability.",
+                "提高決策品質。": "Improve decision quality.",
+                "提高系統設計能力。": "Improve systems design ability.",
+                "提高整合力。": "Improve integration ability.",
+                "提高回憶能力。": "Improve recall ability.",
+                "提高實戰能力。": "Improve practical ability.",
+                "提高熟練度。": "Improve proficiency.",
+                "提高系統品質。": "Improve system quality.",
+                "提高成長動力。": "Improve growth momentum.",
+                "改變命運。": "Change destiny.",
+            };
+
+            return translations[zh] || zh;
+        }
+
+        function renderLaws(laws) {
+            const grid = document.getElementById('lawsGrid');
+            grid.innerHTML = '';
+
+            if (laws.length === 0) {
+                grid.innerHTML = `
+                    <div class="no-results">
+                        <div class="no-results-icon">🔍</div>
+                        <p>找不到相關規律 | No matching laws found</p>
+                    </div>
+                `;
+                return;
+            }
+
+            laws.forEach(law => {
+                grid.innerHTML += createLawCard(law);
+            });
+
+            document.getElementById('stats').textContent = `顯示 ${laws.length} 條規律 | Showing ${laws.length} Laws`;
+        }
+
+        function toggleCard(card) {
+            card.classList.toggle('collapsed');
+            card.classList.toggle('expanded');
+        }
+
+        function expandAll() {
+            document.querySelectorAll('.law-card').forEach(card => {
+                card.classList.remove('collapsed');
+                card.classList.add('expanded');
+            });
+        }
+
+        function collapseAll() {
+            document.querySelectorAll('.law-card').forEach(card => {
+                card.classList.add('collapsed');
+                card.classList.remove('expanded');
+            });
+        }
+
+        function setViewMode(mode) {
+            currentViewMode = mode;
+            document.querySelectorAll('.mode-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+
+            const grid = document.getElementById('lawsGrid');
+            if (mode === 'list') {
+                grid.style.gridTemplateColumns = '1fr';
+            } else {
+                grid.style.gridTemplateColumns = 'repeat(auto-fill, minmax(320px, 1fr))';
+            }
+        }
+
+        function filterByRange(start, end) {
+            const filtered = allLaws.filter(law => law.id >= start && law.id <= end);
+            renderLaws(filtered);
+            collapseAll();
+        }
+
+        function speakText(event, text) {
+            event.stopPropagation();
+            const btn = event.target;
+
+            if ('speechSynthesis' in window) {
+                window.speechSynthesis.cancel();
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.lang = 'en-US';
+                utterance.rate = 0.9;
+
+                btn.classList.add('playing');
+                utterance.onend = () => btn.classList.remove('playing');
+
+                window.speechSynthesis.speak(utterance);
+            }
+        }
+
+        document.getElementById('searchInput').addEventListener('keyup', function() {
+            const query = this.value.toLowerCase();
+            const filtered = allLaws.filter(law => 
+                law.id.toString().includes(query) ||
+                law.rule.toLowerCase().includes(query) ||
+                law.what.toLowerCase().includes(query) ||
+                law.why.toLowerCase().includes(query) ||
+                law.effect.toLowerCase().includes(query)
+            );
+            renderLaws(filtered);
+            collapseAll();
+        });
+
+        // 初始化
+        renderLaws(allLaws);
+    </script>
+</body>
+</html>
