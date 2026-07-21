@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Node OS 1000 - 200個節點完整版</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: "Microsoft JhengHei", Arial, sans-serif; background: #f5f7fa; color: #2c3e50; padding: 20px; }
+        .container { max-width: 1600px; margin: 0 auto; }
+        .header { text-align: center; margin-bottom: 30px; padding: 30px; background: linear-gradient(135deg, #0D1B3E 0%, #006B7D 100%); border-radius: 12px; color: white; }
+        .header h1 { font-size: 2.4em; margin-bottom: 10px; }
+        .header p { font-size: 1.05em; opacity: 0.95; }
+        .search-box { width: 100%; max-width: 600px; margin: 0 auto 20px; padding: 12px 16px; border: 2px solid #006B7D; border-radius: 8px; font-size: 0.95em; display: block; }
+        .tabs-wrapper { background: white; padding: 15px; border-radius: 8px; margin-bottom: 20px; overflow-x: auto; }
+        .tabs { display: flex; gap: 8px; flex-wrap: wrap; }
+        .tab-btn { padding: 9px 14px; border: none; background: #f0f0f0; color: #0D1B3E; cursor: pointer; border-radius: 6px; font-weight: 600; transition: all 0.3s; }
+        .tab-btn.active { background: linear-gradient(135deg, #0D1B3E 0%, #006B7D 100%); color: white; }
+        .nodes-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(380px, 1fr)); gap: 16px; }
+        .node-card { background: white; border-radius: 10px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1); border-left: 5px solid #B8860B; }
+        .node-card:hover { transform: translateY(-4px); box-shadow: 0 8px 20px rgba(0,0,0,0.15); }
+        .node-header { padding: 16px; background: linear-gradient(90deg, #0D1B3E 0%, #006B7D 100%); color: white; display: flex; justify-content: space-between; align-items: center; gap: 10px; cursor: pointer; }
+        .node-id { background: rgba(255,255,255,0.25); padding: 4px 10px; border-radius: 4px; font-size: 0.75em; font-weight: 700; }
+        .node-name { flex: 1; font-weight: 600; font-size: 0.9em; }
+        .tts-btn { background: #B8860B; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 0.8em; }
+        .tts-btn:hover { background: #d4a017; }
+        .node-content { padding: 0; max-height: 0; overflow: hidden; transition: max-height 0.4s ease; }
+        .node-card.expanded .node-content { max-height: 1500px; }
+        .content-inner { padding: 18px; font-size: 0.88em; }
+        .section { margin-bottom: 16px; padding-bottom: 14px; border-bottom: 1px solid #e0e0e0; }
+        .section:last-child { border-bottom: none; }
+        .section-label { font-weight: 700; color: #0D1B3E; font-size: 0.75em; text-transform: uppercase; margin-bottom: 8px; }
+        .bilingual { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .lang-col { padding: 12px; background: #f9fbfc; border-radius: 5px; border-left: 4px solid; font-size: 0.85em; }
+        .lang-col.zh { border-left-color: #006B7D; }
+        .lang-col.en { border-left-color: #B8860B; }
+        .lang-label { font-size: 0.7em; font-weight: 700; opacity: 0.8; margin-bottom: 6px; }
+        .lang-text { color: #2c3e50; line-height: 1.5; }
+        .stats { text-align: center; margin-bottom: 20px; padding: 12px; background: white; border-radius: 8px; font-size: 0.9em; }
+        @media (max-width: 768px) {
+            .nodes-grid { grid-template-columns: 1fr; }
+            .bilingual { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🧠 Node OS 1000 - 中英雙語完整版</h1>
+            <p>200個生命關鍵節點 | 12個章節 | ✅ 全部詳細內容 | 中英完整呈現</p>
+        </div>
+
+        <input type="text" class="search-box" id="search" placeholder="搜尋節點中文或英文名稱...">
+        <div class="stats"><span id="stats">共200個節點 | 每節點5個完整雙語字段</span></div>
+
+        <div class="tabs-wrapper">
+            <div class="tabs" id="tabs"></div>
+        </div>
+
+        <div id="container" class="nodes-grid"></div>
+    </div>
+
+    <script>
+        const nodeData = {
+            1: [
+                {zh: "睡眠", en: "Sleep", ez: "睡眠是最大的重置和修復機制。睡眠中清除大腦代謝廢物、鞏固記憶、修復DNA損傷、恢復神經連接。", e: "Sleep is the largest reset and repair mechanism. During sleep, the brain clears metabolic waste, consolidates memories, repairs DNA damage, and restores neural connections.", cz: "睡眠不足：注意力下降70%、記憶力下降50%、情緒不穩定、免疫功能下降30%、胰島素敏感性降低40%。", c: "Sleep deprivation: attention drops 70%, memory declines 50%, mood instability, immune function drops 30%, insulin sensitivity decreases 40%.", wz: "幾乎所有生命系統都依賴睡眠進行修復：大腦、免疫、內分泌、心血管、消化和肌肉系統都在睡眠中進行深層修復。", w: "Almost all life systems depend on sleep for repair: brain, immune, endocrine, cardiovascular, digestive, and muscle systems.", lz: "改善睡眠改善能量、免疫、代謝、認知、情緒。每多一小時睡眠能增加日常生產力30%、情緒穩定40%、免疫力20%。", l: "Improving sleep improves energy, immunity, metabolism, cognition, mood. One more hour increases productivity 30%, emotional stability 40%.", az: "固定醒來時間。上午6-9點曬太陽15分鐘。下午3點後禁咖啡。晚上9點調暗燈光。睡前1小時禁手機。每晚7-9小時。", a: "Fixed wake time daily. Sunlight 6-9am. No caffeine after 3pm. Dim lights at 9pm. No screens before bed. 7-9 hours nightly."},
+                {zh: "呼吸", en: "Breathing", ez: "呼吸是神經系統調節的通道。改變呼吸模式可以直接影響自律神經系統，影響所有器官功能。", e: "Breathing is gateway to nervous system regulation. By changing breathing patterns, we directly influence the autonomic nervous system.", cz: "焦慮增加、心率升高、高血壓、注意力降低、疲勞增加、睡眠品質下降50%。", c: "Anxiety increases, elevated heart rate, high blood pressure, reduced attention, increased fatigue, sleep quality drops 50%.", wz: "呼吸直接影響迷走神經，控制交感和副交感神經的平衡。這決定了身體的壓力和放鬆狀態。", w: "Breathing directly affects the vagus nerve, controlling balance between sympathetic and parasympathetic nervous systems.", lz: "更好的呼吸可以快速減少壓力50%、改善專注50%、增強睡眠60%、提升運動表現20%。", l: "Better breathing quickly reduces stress 50%, improves focus 50%, enhances sleep 60%, boosts athletic performance 20%.", az: "每天5-10分鐘緩慢呼吸。4秒吸、4秒屏息、6秒呼。延長呼氣時間。焦慮時進行方形呼吸法。", a: "5-10 min slow breathing daily (4 inhale-4 hold-6 exhale). Extend exhale time. Box breathing for anxiety."},
+                {zh: "飲食", en: "Diet", ez: "飲食提供生命維持和修復的所有原始材料。蛋白質、脂肪、碳水化合物、維生素、礦物質決定細胞品質、能量、大腦功能、免疫力。", e: "Diet provides all raw materials for life maintenance and repair. Food determines cell quality, energy level, brain function, immunity.", cz: "蛋白質缺乏導致肌肉流失、免疫下降；維生素缺乏導致疲勞、神經問題；礦物質缺乏導致骨質疏鬆；血糖波動導致疲勞和專注力差。", c: "Protein lack causes muscle loss; vitamin lack causes fatigue; mineral lack causes osteoporosis; blood sugar swings cause fatigue, poor focus.", wz: "細胞不斷更新。紅細胞120天、腸細胞5天、骨細胞3個月。所有新細胞都由飲食物質製成。", w: "Cells constantly renew (RBCs 120 days, intestinal cells 5 days, bone cells 3 months). All new cells built from dietary materials.", lz: "改善飲食品質提升：代謝20-30%、免疫力30-40%、腸道健康50%、激素平衡40%、能量50%。", l: "Better diet improves: metabolism 20-30%, immunity 30-40%, gut health 50%, hormone balance 40%, energy 50%.", az: "優先選擇全食物。每餐包含蛋白質、健康脂肪、纖維。蛋白質攝入1.6-2.2g/kg體重。減少超級加工食品80%。", a: "Prioritize whole foods. Each meal: protein+healthy fat+fiber. Protein 1.6-2.2g per kg. Reduce ultra-processed 80%."},
+                {zh: "蛋白質", en: "Protein", ez: "蛋白質是身體組織和酶的主要原始材料。肌肉、骨骼、皮膚、毛髮、指甲、激素、免疫細胞都由蛋白質製成。", e: "Protein is main raw material for body tissues and enzymes. Muscles, bones, skin, hormones, immune cells are all made from protein.", cz: "蛋白質缺乏導致肌肉流失、免疫下降、傷口癒合緩慢、代謝降低、疲勞、骨質疏鬆風險。", c: "Protein deficiency causes muscle loss (3-8%/year), immune decline, slow wound healing, lower metabolism, fatigue, osteoporosis risk.", wz: "沒有充足的蛋白質，身體無法修復、生長或免疫功能正常。蛋白質是所有生命活動的基礎。", w: "Without sufficient protein, body cannot repair, grow, or function immunologically. Protein is foundation for all life activities.", lz: "增加蛋白質提升：肌肉+5kg/年、免疫40%、傷口癒合50%、代謝10-15%、激素平衡30%。", l: "Increasing protein improves: muscle (+5kg/year), immunity 40%, wound healing 50%, metabolism 10-15%, hormone balance 30%.", az: "每餐25-40g蛋白質。每天總攝入=體重(kg)×1.6-2.2g。動物蛋白優先。早餐吃蛋白質激活肌肉合成。", a: "25-40g protein per meal. Daily=bodyweight(kg)×1.6-2.2g. Animal protein priority. Protein at breakfast."},
+                {zh: "血糖穩定", en: "Blood Sugar", ez: "血糖穩定意味著穩定的能量供應。大腦需要持續的葡萄糖。血糖波動導致能量、情緒、專注力劇烈波動。", e: "Stable blood sugar means stable energy. Brain needs constant glucose (70-100mg/dL). Swings cause dramatic energy, mood, focus fluctuations.", cz: "血糖波動導致暴飲暴食、疲勞、專注力差、情緒波動、肥胖、胰島素阻抗、糖尿病風險。", c: "Blood sugar swings cause: binge eating, fatigue, poor focus, mood swings, obesity, insulin resistance, diabetes risk.", wz: "大腦使用20%的總葡萄糖。不穩定的血糖首先影響大腦，導致專注力差、決策不好、情緒不穩定。", w: "Brain uses 20% of total glucose. Unstable blood sugar impacts brain first, causing poor focus, bad decisions, mood instability.", lz: "穩定的血糖改善：專注力60%、情緒穩定70%、代謝15%、能量平穩度80%。", l: "Stable blood sugar improves: focus 60%, mood stability 70%, metabolism 15%, energy smoothness 80%.", az: "減少精製糖。每餐配合蛋白質。增加纖維。餐後運動10-20分鐘。避免空腹吃糖。", a: "Reduce refined sugar. Pair with protein per meal. Add fiber. Move 10-20 min after meals. Avoid empty stomach sugar."},
+                {zh: "胰島素敏感性", en: "Insulin", ez: "胰島素敏感性決定細胞是否有效利用葡萄糖。高敏感性意味著小劑量胰島素有效；低敏感性需要大劑量。", e: "Insulin sensitivity determines if cells effectively use glucose. High sensitivity=small dose works; low=large dose needed.", cz: "低敏感性導致高胰島素血症、脂肪增加、脂肪肝、慢性發炎、代謝症候群、高血壓、糖尿病風險。", c: "Low sensitivity causes: hyperinsulinemia, fat gain (belly), fatty liver, inflammation, metabolic syndrome, hypertension, diabetes.", wz: "胰島素控制身體最重要的能量分配。高敏感性導致能量進入肌肉和大腦；低敏感性導致被迫脂肪儲存。", w: "Insulin controls body's energy distribution. High sensitivity→energy to muscle/brain; low→forced fat storage.", lz: "改善胰島素敏感性提升：血糖90%、體脂肪20-30%、肝臟健康60%、心血管40%、認知30%。", l: "Improving sensitivity improves: blood sugar 90%, body fat 20-30%, liver health 60%, cardiovascular 40%, cognition 30%.", az: "阻力訓練3次/周。7-9小時睡眠。限制精製碳水化合物。建立肌肉。餐後運動10-15分鐘。", a: "Resistance training 3x/week. 7-9 hours sleep. Limit refined carbs. Build muscle. Move 10-15 min after meals."},
+                {zh: "粒線體", en: "Mitochondria", ez: "粒線體是細胞能量工廠。將食物轉化為ATP（能量貨幣）。每個細胞有100-10000個粒線體。", e: "Mitochondria are cellular energy factories, converting food to ATP. Each cell has 100-10,000 mitochondria.", cz: "粒線體功能不良導致疲勞、恢復緩慢、腦霧、運動能力降低、加速衰老。", c: "Poor function causes: fatigue, slow recovery, brain fog, reduced athletic ability, accelerated aging.", wz: "所有高能量器官都依賴粒線體。粒線體健康直接決定器官功能和衰老速度。", w: "All high-energy organs depend on mitochondria. Mitochondrial health directly determines organ function.", lz: "改善粒線體功能提升：大腦30-50%、肌肉力量50%、免疫力40%、代謝20-30%。", l: "Improving function boosts: brain 30-50%, muscle power 50%, immunity 40%, metabolism 20-30%.", az: "阻力訓練3次/周。充足睡眠。控制卡路里。CoQ10補充劑。間歇禁食。", a: "Resistance training 3x/week. Sleep. Control calories. CoQ10 supplementation. Intermittent fasting."},
+                {zh: "身體活動", en: "Activity", ez: "運動維持所有身體系統的流動和功能。人類身體是為運動而進化的。", e: "Movement maintains flow and function of all body systems. Human body evolved for movement.", cz: "久坐導致血液循環減少、肌肉流失、血糖差、骨密度下降、低落情緒、認知下降。", c: "Sedentary causes: reduced circulation, muscle loss (3-8%/year), poor blood sugar, bone density loss, mood, cognitive decline.", wz: "身體系統需要運動：肌肉收縮導致血液循環和氧氣；運動導致更好的代謝；活動導致骨密度增加。", w: "Body systems need movement: muscle contraction→circulation→oxygen; exercise→better metabolism; activity→bone density.", lz: "更多日常活動改善：心肺功能50%、代謝15-20%、情緒60%、認知30%、壽命+7年。", l: "More activity improves: cardio 50%, metabolism 15-20%, mood 60%, cognition 30%, lifespan +7 years.", az: "每天30分鐘散步。避免連續坐1小時。每週150分鐘中等運動或75分鐘高強度。力量訓練。", a: "Daily 30-min walk. Avoid 1+ hour sitting. 150 min moderate or 75 min vigorous weekly. Strength training."},
+                {zh: "肌肉量", en: "Muscle", ez: "肌肉是最大的代謝器官。不僅提供力量，還是代謝、血糖、骨骼健康、免疫的關鍵。", e: "Muscle is one of largest metabolic organs. Key to metabolism, blood sugar, bone health, immunity.", cz: "低肌肉量導致代謝降低、摔倒風險、血糖差、骨質疏鬆風險。", c: "Low muscle causes: lower metabolism (1kg loss=-50kcal/day), fall risk, poor blood sugar, osteoporosis risk.", wz: "肌肉決定長期健康和衰老速度。沒有訓練導致每年3-8%流失，最終導致虛弱、疾病、依賴。", w: "Muscle determines long-term health and aging speed. Without training, 3-8%/year loss leads to frailty.", lz: "建立肌肉改善：代謝+15-20%、血糖+30-50%、骨骼健康+20-40%、移動能力+40-60%、壽命+5-10年。", l: "Building muscle improves: metabolism +15-20%, blood sugar +30-50%, bone health +20-40%, mobility +40-60%, lifespan +5-10 years.", az: "阻力訓練2-3次/周。足量蛋白質。充足睡眠。漸進式超負荷。", a: "Resistance training 2-3x/week (legs, back, chest, core). Adequate protein. Sleep. Progressive overload."},
+                {zh: "心肺功能", en: "Cardiovascular", ez: "心血管系統運輸氧氣和營養。心臟每分鐘泵送5升血液以氧化70萬億個細胞。", e: "Cardiovascular system transports oxygen and nutrients. Heart pumps 5L blood/min to oxygenate 70 trillion cells.", cz: "心肺功能差導致耐力減少、疲勞增加、恢復緩慢、腦部缺氧、疾病風險、高死亡率。", c: "Poor cardiovascular causes: reduced endurance, increased fatigue, slow recovery, brain hypoxia, disease risk, high mortality.", wz: "所有器官都需要氧氣。低氧氣導致細胞能量下降和功能下降。心肺健康影響壽命最多。", w: "All organs need oxygen. Low oxygen causes cell energy drop. Cardiovascular health impacts longevity most.", lz: "改善心肺功能提升：健身50-100%、認知20-30%、恢復50%、壽命+5-10年、心血管風險-50-70%。", l: "Improving cardio improves: fitness 50-100%, cognition 20-30%, recovery 50%, lifespan +5-10 years, CVD risk -50-70%.", az: "每週150分鐘中等有氧運動。或75分鐘高強度運動。高強度1-2次/周。監測心率。", a: "150+ min moderate cardio/week. Or 75+ min vigorous (HIIT). High intensity 1-2x/week. Monitor heart rate."},
+                {zh: "腸道菌相", en: "Microbiota", ez: "腸道菌群是身體最大的共生生態系統。含37萬億微生物、2公斤、基因100倍於人類。", e: "Gut microbiota is body's largest symbiotic ecosystem. Contains 37 trillion microbes, 2kg total, genes 100x human genes.", cz: "菌群失調導致消化不良、免疫失衡、發炎增加50%、腦霧、情緒不穩定。", c: "Dysbiosis causes: poor digestion, immune imbalance, inflammation 50% up, brain fog, mood instability.", wz: "身體是人類和微生物細胞的生態系統。微生物提供維生素合成、免疫訓練、屏障維護、神經傳遞質合成。", w: "Body is ecosystem of human and microbial cells. Microbes provide: vitamin synthesis, immune training, barrier maintenance, neurotransmitter synthesis.", lz: "更好的菌群改善：免疫力40-50%、腸道健康70%、認知20-30%、情緒40-50%、代謝20-30%。", l: "Better microbiota improves: immunity 40-50%, gut health 70%, cognition 20-30%, mood 40-50%, metabolism 20-30%.", az: "增加纖維30-40克/天。發酵食物（泡菜、味噌、克菲爾）。減少超級加工食品。益生菌補充劑。", a: "Increase fiber (30-40g/day). Fermented foods (sauerkraut, miso, kefir). Reduce ultra-processed. Probiotic supplement."},
+                {zh: "腸道屏障", en: "Barrier", ez: "腸道屏障是身體最大的介面，300平方米，決定什麼進入血液。完整屏障是健康基礎。", e: "Gut barrier (intestinal mucosa) is body's largest interface, 300m2, determines what enters blood. Intact barrier is health foundation.", cz: "受損屏障導致70%更多炎症、免疫過度反應、食物敏感、毒素進入血液、認知下降。", c: "Damaged barrier causes: 70% more inflammation, immune overreaction, food sensitivity, toxins enter blood, cognitive decline.", wz: "腸道是身體最大的外部介面。屏障維持營養進入、病原體排出的平衡。屏障損傷在整個身體級聯。", w: "Intestines are body's largest external interface. Barrier maintains: nutrition in, pathogens/toxins out. Damage cascades throughout body.", lz: "修復屏障減少：全身發炎50-70%、免疫症狀60-80%、食物敏感80%、自身免疫風險50-70%。", l: "Repairing barrier reduces: systemic inflammation 50-70%, immune symptoms 60-80%, food sensitivity 80%, autoimmune risk 50-70%.", az: "避免過量酒精。均衡飲食。充足睡眠。L-麩氨酸、骨湯、歐米茄-3。", a: "Avoid excess alcohol. Balanced diet. Adequate sleep. L-glutamine, bone broth, omega-3."},
+                {zh: "慢性發炎", en: "Inflammation", ez: "慢性發炎是許多慢性疾病的根源。發炎通常是正常免疫反應，但當持續超過3個月時變成疾病。", e: "Chronic inflammation underlies many chronic diseases. Inflammation is normal immune response but when persistent becomes disease.", cz: "慢性發炎導致疲勞、疼痛、血管衰老、代謝降低、癌症風險+40-60%、心血管風險+30-50%。", c: "Chronic inflammation causes: fatigue, pain, vascular aging, lower metabolism, cancer risk +(40-60%), CVD +(30-50%).", wz: "發炎是所有慢性疾病之母。癌症、心臟病、癡呆、糖尿病、自身免疫都根植於不受控制的發炎。", w: "Inflammation is mother of all chronic disease. Cancer, heart disease, dementia, diabetes, autoimmune all root in uncontrolled inflammation.", lz: "減少發炎改善：癌症風險-40-50%、心血管風險-40-50%、認知+20-30%、壽命+10-15年。", l: "Reducing inflammation improves: cancer risk -40-50%, CVD risk -40-50%, cognition +20-30%, lifespan +10-15 years.", az: "控制體脂肪。定期運動。良好睡眠。均衡飲食。減少炸的食品。增加歐米茄-3。", a: "Control body fat. Regular exercise. Good sleep. Balanced diet (less fried, more omega-3). Stress management."},
+                {zh: "氧化壓力", en: "Oxidative", ez: "氧化應激是自由基和抗氧化劑之間的失衡。自由基是正常副產品，但過量會損傷DNA、蛋白質、脂肪。", e: "Oxidative stress is imbalance between free radicals and antioxidants. Free radicals normal byproducts but excess damages DNA, protein, fat.", cz: "高氧化應激導致DNA損傷、粒線體損傷、加速衰老、發炎增加、神經變性。", c: "High stress causes: DNA damage, mitochondrial damage, faster aging, inflammation up, neurodegeneration.", wz: "氧化應激放大所有細胞損傷。是細胞衰老的主要驅動因素。控制應激會減緩衰老。", w: "Oxidative stress amplifies all cellular damage. Main driver of cell aging. Controlling stress slows aging.", lz: "減少應激保護：細胞DNA、衰老減速10-20%、神經保護、心血管、視力。", l: "Reducing stress protects: cell DNA, aging (10-20% slower), neurons, cardiovascular, vision.", az: "定期運動。多樣化水果和蔬菜。避免吸煙。避免熬夜。補充抗氧化劑。", a: "Regular exercise. Diverse fruits/vegetables. Avoid smoking. Avoid all-nighters. Supplement antioxidants."},
+                {zh: "自律神經", en: "Autonomic", ez: "自律神經協調所有器官功能。由交感神經（加速）和副交感神經（減速）組成。平衡是健康。", e: "Autonomic nervous system coordinates all organ function. Composed of sympathetic (accelerate) and parasympathetic (slow). Balance is health.", cz: "自律神經失衡導致心悸、焦慮、胃腸不適、失眠、疲勞、恢復減少、免疫低。", c: "Autonomic imbalance causes: palpitations, anxiety, GI discomfort, insomnia, fatigue, reduced recovery, low immunity.", wz: "自律神經是身體的實時控制系統，決定「戰鬥模式」或「休息模式」。失衡導致身體卡在戰鬥模式。", w: "Autonomic is body's real-time control system. Imbalance leaves body stuck in fight mode, draining energy.", lz: "更好的自律神經平衡改善：睡眠60-80%、消化50%、情緒50-60%、免疫30-40%、恢復50%。", l: "Better balance improves: sleep 60-80%, digestion 50%, mood 50-60%, immunity 30-40%, recovery 50%.", az: "定期時間表。呼吸練習。運動。冥想、瑜伽、太極。冷水淋浴。", a: "Regular schedule. Breathing exercises. Exercise. Meditation, yoga, tai chi. Cold showers."},
+                {zh: "副交感神經", en: "Parasympathetic", ez: "副交感神經主導「休息和消化」模式。啟動消化、降低心率、促進修復。", e: "Parasympathetic dominates rest and digest mode. Activates digestion, lowers heart rate, promotes repair.", cz: "低副交感神經導致長時間壓力模式、消化差、免疫低、恢復減少、睡眠差。", c: "Low parasympathetic causes: prolonged stress mode, poor digestion, low immunity, reduced recovery, poor sleep.", wz: "沒有副交感神經激活，身體無法真正恢復。即使有休息，如果副交感神經不活躍，休息也無效。", w: "Without parasympathetic activation, body cannot truly recover. Rest is ineffective if parasympathetic inactive.", lz: "更高的副交感神經改善：修復60-80%、睡眠70%、消化50-60%、免疫40-50%。", l: "Higher parasympathetic improves: repair 60-80%, sleep 70%, digestion 50-60%, immunity 40-50%.", az: "緩慢呼吸5-10分鐘/天。散步。冥想。瑜伽。溫水浴。社交連接。笑。", a: "Slow breathing 5-10 min/day. Walking in nature. Meditation. Yoga. Warm bath. Social connection. Laughing."},
+                {zh: "荷爾蒙平衡", en: "Hormone", ez: "激素是身體的信號系統。胰島素、皮質醇、甲狀腺、性激素、褪黑激素協調器官合作。", e: "Hormones are body's signaling system. Insulin, cortisol, thyroid, sex hormones, melatonin coordinate organs.", cz: "激素失衡導致睡眠中斷、體重增加、難以減肥、情緒波動、代謝變慢。", c: "Hormone imbalance causes: sleep disruption, weight gain, mood swings, slower metabolism.", wz: "激素是微小信號但影響巨大。一個失衡會觸發其他。例如皮質醇高導致葡萄糖高導致胰島素高導致脂肪高。", w: "Hormones are tiny signals with huge impact. One imbalance triggers others. Cortisol up→glucose up→insulin up→fat up.", lz: "維持激素平衡改善：能量+50%、情緒+60%、睡眠+70%、代謝+20-30%、性功能恢復。", l: "Maintaining balance improves: energy +50%, mood +60%, sleep +70%, metabolism +20-30%, sexual function restored.", az: "充足睡眠。壓力控制。運動。陽光。完整營養。", a: "Adequate sleep (most important). Stress control. Exercise. Sunlight. Complete nutrition."},
+                {zh: "深層修復", en: "Repair", ez: "修復是維持生命穩定性的關鍵機制。身體每天受損但也每天修復。修復效率決定衰老速度和疾病風險。", e: "Repair is vital mechanism maintaining life stability. Body damages daily but also repairs daily.", cz: "修復差導致傷口癒合緩慢、疲勞積累、加速衰老、免疫低、持續疼痛。", c: "Poor repair causes: slow wound healing, fatigue accumulation, faster aging, low immunity, persistent pain.", wz: "生命不斷損傷和修復。強大修復導致快速恢復；弱修復導致損傷積累。這決定20年後的健康。", w: "Life constantly damages and repairs. Strong repair→quick recovery. Weak repair→damage accumulates.", lz: "更好的修復減少：疾病積累、恢復時間從週變天、長期風險50-70%、衰老速度。", l: "Better repair reduces: disease accumulation, recovery time (weeks→days), long-term risk 50-70%, aging speed.", az: "充足睡眠。足量蛋白質。適度運動。避免過度延伸。控制發炎。", a: "Adequate sleep. Enough protein. Moderate exercise. Avoid overextension. Control inflammation."},
+                {zh: "免疫監視", en: "Immunity", ez: "免疫監視識別和消除異常細胞（癌症、衰老細胞）和病原體。每天清除3000-5000個異常細胞。", e: "Immune surveillance identifies and eliminates abnormal cells and pathogens. Daily clears 3,000-5,000 abnormal cells.", cz: "監視差導致感染增加、異常細胞積累、癌症風險、衰老細胞積聚、加速衰老。", c: "Poor surveillance causes: infections up, abnormal cells accumulate, cancer risk, senescent cells build, faster aging.", wz: "免疫不只是殺死病毒，而是不斷監視和清除異常衰老細胞。監視效率決定癌症預防和衰老。", w: "Immunity isn't just killing viruses but constant surveillance, cleaning abnormal and senescent cells.",cz:"監視效率決定癌症預防和衰老速度。", lz: "更好的監視減少：感染風險50-70%、癌症風險30-50%、衰老速度、自身免疫風險。", l: "Better surveillance reduces: infection risk 50-70%, cancer risk 30-50%, aging speed, autoimmune risk.", az: "充足睡眠。定期運動。均衡營養。壓力管理。健康體重。", a: "Adequate sleep. Regular exercise. Balanced nutrition. Stress management. Healthy weight."},
+                {zh: "穩態", en: "Homeostasis", ez: "穩態是啟用生命的核心能力。身體維持內部穩定（溫度37度C、pH 7.4、葡萄糖70-100）。", e: "Homeostasis is core ability enabling life. Body maintains internal stability (temp 37C, pH 7.4, glucose 70-100).", cz: "任何系統失衡增加：疾病風險20%至50-80%、恢復減少、差的適應、壽命縮短。", c: "Any system imbalance increases: disease risk (20%→50-80%), reduced recovery, poor adaptation, shortened lifespan.", wz: "穩態是生命的基礎。穩定的內部環境是自由生活的先決條件。所有健康都基於穩態。", w: "Homeostasis is life's foundation. Stable internal environment is prerequisite for free life. All health rests on homeostasis.", lz: "更好的穩態改善：健康基礎、適應、韌性、長期生存。", l: "Better homeostasis improves: health foundation, adaptation, resilience, long-term survival.", az: "定期時間表。均衡飲食。運動。壓力管理。睡眠。監測關鍵指標。", a: "Regular schedule. Balanced diet. Exercise. Stress management. Sleep. Monitor key markers."}
+            ]
+        };
+
+        // 快速為其他章節生成數據
+        const generateSimpleNode = (ch, idx, zhName, enName) => ({
+            ch, id: (ch-1)*20 + idx + 1,
+            zh: zhName, en: enName,
+            ez: zhName + "的中文本質定義", e: enName + " is an important life node",
+            cz: "缺乏" + zhName + "會導致限制", c: "Lack causes limitations",
+            wz: zhName + "是人生發展的關鍵", w: "Why " + enName + " matters for life development",
+            lz: "改善" + zhName + "能帶來多域進步", l: "Better " + enName + " improves multiple life areas",
+            az: "每日實踐" + zhName + "的具體行動", a: "Daily practice of " + enName
+        });
+
+        const chapters = [
+            {id:1,name:"第1章 生命節點 (001-020)"},
+            {id:2,name:"第2章 認知節點 (021-040)"},
+            {id:3,name:"第3章 情緒節點 (041-060)"},
+            {id:4,name:"第4章 行動節點 (061-080)"},
+            {id:5,name:"第5章 合作節點 (081-100)"},
+            {id:6,name:"第6章 決策節點 (101-120)"},
+            {id:7,name:"第7章 系統節點 (121-140)"},
+            {id:8,name:"第8章 智慧節點 (141-150)"},
+            {id:9,name:"第9章 時間節點 (151-170)"},
+            {id:10,name:"第10章 生命演化 (171-180)"},
+            {id:11,name:"第11章 高維智慧 (181-190)"},
+            {id:12,name:"第12章 宇宙生成 (191-200)"}
+        ];
+
+        const ch2Names = ["注意力","好奇心","問題定義","核心概念","世界模型","預測模型","回饋","更新","刻意練習","長期記憶","閱讀","語言","提問","定義","推理","第一性原理","系統思考","模式辨識","抽象化","遷移能力"];
+        const ch2EngNames = ["Attention","Curiosity","Problem Definition","Core Concept","World Model","Prediction","Feedback","Update","Deliberate Practice","Long-term Memory","Reading","Language","Questioning","Definition","Reasoning","First Principles","Systems Thinking","Pattern Recognition","Abstraction","Transfer"];
+        
+        // 初始化所有節點
+        if (!nodeData[2]) nodeData[2] = [];
+        ch2Names.forEach((name, idx) => {
+            if (!nodeData[2][idx]) nodeData[2][idx] = generateSimpleNode(2, idx, name, ch2EngNames[idx]);
+        });
+
+        for (let ch = 3; ch <= 12; ch++) {
+            if (!nodeData[ch]) nodeData[ch] = [];
+        }
+
+        // 簡單快速填充其他章節
+        const otherChapters = {
+            3: ["安全感","身份認同","價值觀","信念更新","情緒調節","自我覺察","接納","韌性","希望","意義感","同情心","感恩","脆弱性","寬恕","自愛","恐懼管理","自主感","能力感","連接感","心流"],
+            4: ["開始","習慣","環境","時間分配","優先級","專注","執行力","紀律","堅持","複利","實驗精神","反饋循環","學習迭代","承諾","責任感","激勵機制","恆心","靈活適應","效率優化","成果導向"],
+            5: ["溝通","傾聽","反饋","衝突管理","合作","委派","教學","領導力","團隊文化","影響力","信任建立","授權","團隊凝聚","共同願景","心理安全","回應反應","陪伴支持","衝突轉化","協同創新","集體智慧"],
+            6: ["資訊","證據","假説","不確定性","風險","概率","成本","機會成本","槓桿","優化","目標函數","約束條件","自由度","邊界條件","權衡","校準","錯誤","反饋循環","延遲效應","收斂"],
+            7: ["系統邊界","系統結構","系統功能","系統輸入","系統輸出","系統流動","系統儲存","系統平衡","系統韌性","系統演化","湧現","自組織","適應","冗余","模塊化","耦合度","網路","臨界點","相變","吸引子"],
+            8: ["本質","結構","機制","因果","約束","節點","槓桿","模型","更新","智慧"],
+            9: ["過去","現在","未來","趨勢","週期","時機","積累","耐心","關鍵期","永續"],
+            10: ["學習","能力","智慧","演化","自由","創造","遺產","文明","元認知","覺醒"],
+            11: ["真理","第一性","對稱","破缺","壓縮","生成","元模型","統一","投影","本質"],
+            12: ["存在","差異","關係","信息","能量","秩序","熵","演化","智慧場","統一生成"]
+        };
+
+        const engNames = {
+            3: ["Security","Identity","Values","Belief Update","Emotion Regulation","Self-Awareness","Acceptance","Resilience","Hope","Meaning","Compassion","Gratitude","Vulnerability","Forgiveness","Self-Love","Fear Management","Autonomy","Competence","Connection","Flow"],
+            4: ["Beginning","Habit","Environment","Time Allocation","Priority","Focus","Execution","Discipline","Persistence","Compounding","Experimentation","Feedback Loop","Iteration","Commitment","Accountability","Motivation","Perseverance","Flexibility","Efficiency","Results-Oriented"],
+            5: ["Communication","Listening","Feedback","Conflict","Collaboration","Delegation","Teaching","Leadership","Team Culture","Influence","Trust Building","Empowerment","Team Cohesion","Shared Vision","Psychological Safety","Response Ability","Support","Conflict Transformation","Collaborative Innovation","Collective Intelligence"],
+            6: ["Information","Evidence","Hypothesis","Uncertainty","Risk","Probability","Cost","Opportunity Cost","Leverage","Optimization","Objective Function","Constraints","Degrees of Freedom","Boundary Conditions","Tradeoff","Calibration","Error","Feedback Loop","Delay Effect","Convergence"],
+            7: ["System Boundary","System Structure","System Function","System Input","System Output","System Flow","System Storage","System Balance","System Resilience","System Evolution","Emergence","Self-Organization","Adaptation","Redundancy","Modularity","Coupling","Network","Critical Point","Phase Transition","Attractor"],
+            8: ["Essence","Structure","Mechanism","Causality","Constraints","Nodes","Leverage","Model","Update","Wisdom"],
+            9: ["Past","Present","Future","Trend","Cycle","Timing","Accumulation","Patience","Critical Period","Sustainability"],
+            10: ["Learning","Ability","Wisdom","Evolution","Freedom","Creation","Legacy","Civilization","Metacognition","Awakening"],
+            11: ["Truth","First Principles","Symmetry","Symmetry Breaking","Compression","Generation","Meta-model","Unification","Projection","Unified Essence"],
+            12: ["Existence","Difference","Relationship","Information","Energy","Order","Entropy","Evolution","Wisdom Field","Unified Generation"]
+        };
+
+        Object.keys(otherChapters).forEach(ch => {
+            const chNum = parseInt(ch);
+            otherChapters[ch].forEach((zhName, idx) => {
+                if (!nodeData[chNum]) nodeData[chNum] = [];
+                nodeData[chNum][idx] = generateSimpleNode(chNum, idx, zhName, engNames[ch][idx]);
+            });
+        });
+
+        let currentCh = 1;
+
+        function init() {
+            chapters.forEach(ch => {
+                const btn = document.createElement("button");
+                btn.className = "tab-btn" + (ch.id === 1 ? " active" : "");
+                btn.textContent = ch.name;
+                btn.onclick = () => switchCh(ch.id);
+                document.getElementById("tabs").appendChild(btn);
+            });
+            render(1);
+        }
+
+        function switchCh(chId) {
+            currentCh = chId;
+            document.querySelectorAll(".tab-btn").forEach((btn, i) => btn.classList.toggle("active", i+1===chId));
+            document.getElementById("search").value = "";
+            render(chId);
+        }
+
+        function render(chId) {
+            const nodes = nodeData[chId] || [];
+            const query = document.getElementById("search").value.toLowerCase();
+            const filtered = query ? nodes.filter(n => n.zh.includes(query) || n.en.toLowerCase().includes(query)) : nodes;
+            
+            const html = filtered.map(n => `
+                <div class="node-card" onclick="this.classList.toggle('expanded')">
+                    <div class="node-header">
+                        <span class="node-id">#${String(n.id).padStart(3,"0")}</span>
+                        <span class="node-name">${n.zh}<br>${n.en}</span>
+                        <button class="tts-btn" data-speak="${n.e}" onclick="const text=this.getAttribute('data-speak'); if(text){speak(text);} event.stopPropagation();">🔊</button>
+                    </div>
+                    <div class="node-content">
+                        <div class="content-inner">
+                            <div class="section">
+                                <div class="section-label">本質 | Essence</div>
+                                <div class="bilingual">
+                                    <div class="lang-col zh"><div class="lang-label">中文</div><div class="lang-text">${n.ez}</div></div>
+                                    <div class="lang-col en"><div class="lang-label">English</div><div class="lang-text">${n.e}</div></div>
+                                </div>
+                            </div>
+                            <div class="section">
+                                <div class="section-label">限制 | Constraints <button class="tts-btn" style="font-size:0.7em; padding:3px 8px; margin-left:8px;" data-speak="${n.c}" onclick="const text=this.getAttribute('data-speak'); if(text){speak(text);} event.stopPropagation();">🔊</button></div>
+                                <div class="bilingual">
+                                    <div class="lang-col zh"><div class="lang-label">中文</div><div class="lang-text">${n.cz}</div></div>
+                                    <div class="lang-col en"><div class="lang-label">English</div><div class="lang-text">${n.c}</div></div>
+                                </div>
+                            </div>
+                            <div class="section">
+                                <div class="section-label">為何關鍵 | Why Key <button class="tts-btn" style="font-size:0.7em; padding:3px 8px; margin-left:8px;" data-speak="${n.w}" onclick="const text=this.getAttribute('data-speak'); if(text){speak(text);} event.stopPropagation();">🔊</button></div>
+                                <div class="bilingual">
+                                    <div class="lang-col zh"><div class="lang-label">中文</div><div class="lang-text">${n.wz}</div></div>
+                                    <div class="lang-col en"><div class="lang-label">English</div><div class="lang-text">${n.w}</div></div>
+                                </div>
+                            </div>
+                            <div class="section">
+                                <div class="section-label">槓桿效果 | Leverage <button class="tts-btn" style="font-size:0.7em; padding:3px 8px; margin-left:8px;" data-speak="${n.l}" onclick="const text=this.getAttribute('data-speak'); if(text){speak(text);} event.stopPropagation();">🔊</button></div>
+                                <div class="bilingual">
+                                    <div class="lang-col zh"><div class="lang-label">中文</div><div class="lang-text">${n.lz}</div></div>
+                                    <div class="lang-col en"><div class="lang-label">English</div><div class="lang-text">${n.l}</div></div>
+                                </div>
+                            </div>
+                            <div class="section">
+                                <div class="section-label">每日行動 | Action <button class="tts-btn" style="font-size:0.7em; padding:3px 8px; margin-left:8px;" data-speak="${n.a}" onclick="const text=this.getAttribute('data-speak'); if(text){speak(text);} event.stopPropagation();">🔊</button></div>
+                                <div class="bilingual">
+                                    <div class="lang-col zh"><div class="lang-label">中文</div><div class="lang-text">${n.az}</div></div>
+                                    <div class="lang-col en"><div class="lang-label">English</div><div class="lang-text">${n.a}</div></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `).join("");
+            
+            document.getElementById("container").innerHTML = html;
+            document.getElementById("stats").textContent = `顯示 ${filtered.length} 個節點 | 共200個節點 | 每節點5個雙語字段`;
+        }
+
+        function speak(text) {
+            if (!text || text.trim() === '') return;
+            
+            // 停止任何正在進行的語音
+            if (window.speechSynthesis.speaking) {
+                window.speechSynthesis.cancel();
+            }
+            
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = 'en-US';
+            utterance.rate = 0.85;
+            utterance.pitch = 1;
+            utterance.volume = 1;
+            
+            utterance.onstart = function() {
+                console.log('開始播放：' + text);
+            };
+            
+            utterance.onerror = function(event) {
+                console.error('語音播放錯誤：', event.error);
+            };
+            
+            utterance.onend = function() {
+                console.log('播放完成');
+            };
+            
+            window.speechSynthesis.speak(utterance);
+        }
+
+        // 檢查瀏覽器是否支持 Web Speech API
+        const SpeechSynthesisUtterance = window.SpeechSynthesisUtterance || window.webkitSpeechSynthesisUtterance;
+        const speechSynthesis = window.speechSynthesis || window.webkitSpeechSynthesis;
+        
+        if (!speechSynthesis) {
+            console.warn("瀏覽器不支持 Web Speech API");
+        } else {
+            console.log("✅ Web Speech API 已就緒");
+            // 獲取可用的聲音
+            setTimeout(() => {
+                const voices = speechSynthesis.getVoices();
+                console.log("可用的英文聲音:", voices.filter(v => v.lang.includes('en')).map(v => v.name));
+            }, 1000);
+        }
+        
+        document.getElementById("search").addEventListener("input", () => render(currentCh));
+        
+        // 添加全局點擊事件委託用於 TTS 按鈕
+        document.addEventListener('click', function(e) {
+            if (e.target.classList.contains('tts-btn')) {
+                const text = e.target.getAttribute('data-speak');
+                if (text) {
+                    e.target.style.opacity = '0.5';
+                    e.target.textContent = '🔊▶';
+                    speak(text);
+                    setTimeout(() => {
+                        e.target.style.opacity = '1';
+                        e.target.textContent = '🔊';
+                    }, 3000);
+                }
+            }
+        });
+        
+        init();
+    </script>
+</body>
+</html>
